@@ -703,11 +703,17 @@ exports.Range = class Range extends Base
     idx      = del o, 'index'
     idxName  = del o, 'name'
     namedIndex = idxName and idxName isnt idx
+    #console.log "idx=#{idx}, idxName=#{idxName}, namedIndex=#{namedIndex}, @from=#{@fromC},#{@fromVar}, @to=#{@toC},#{@toVar} @step=#{@sterp},#{@stepVar}"
+    # uwsc: katoy
+    varPart   = "#{idxName} = #{@fromC} To #{@toC}"
+    varPart  += " Step #{@step}"  if @stepVar
+    return varPart
+    
     varPart  = "#{idx} = #{@fromC}"
     varPart += ", #{@toC}" if @toC isnt @toVar
     varPart += ", #{@step}" if @step isnt @stepVar
     [lt, gt] = ["#{idx} <#{@equals}", "#{idx} >#{@equals}"]
-
+    
     # Generate the condition.
     condPart = if @stepNum
       if +@stepNum > 0 then "#{lt} #{@toVar}" else "#{gt} #{@toVar}"
@@ -1749,26 +1755,32 @@ exports.For = class For extends While
   compileNode: (o) ->
     body      = Block.wrap [@body]
     lastJumps = last(body.expressions)?.jumps()
-    @returns  = no if lastJumps and lastJumps instanceof Return
+    # uwsc: katoy
+    # @returns  = no if lastJumps and lastJumps instanceof Return
+    @returns  = no
     source    = if @range then @source.base else @source
     scope     = o.scope
     name      = @name  and @name.compile o, LEVEL_LIST
     index     = @index and @index.compile o, LEVEL_LIST
     scope.find(name)  if name and not @pattern
     scope.find(index) if index
-    rvar      = scope.freeVariable 'results' if @returns
-    ivar      = (@object and index) or scope.freeVariable 'i'
-    kvar      = (@range and name) or index or ivar
-    kvarAssign = if kvar isnt ivar then "#{kvar} = " else ""
+    #rvar      = scope.freeVariable 'results' if @returns
+    #ivar      = (@object and index) or scope.freeVariable 'i'
+    #kvar      = (@range and name) or index or ivar
+    #kvarAssign = if kvar isnt ivar then "#{kvar} = " else ""
     # the `_by` variable is created twice in `Range`s if we don't prevent it from being declared here
     stepvar   = scope.freeVariable "step" if @step and not @range
-    name      = ivar if @pattern
+    #name      = ivar if @pattern
     varPart   = ''
     guardPart = ''
     defPart   = ''
     idt1      = @tab + TAB
     if @range
-      forPart = source.compile merge(o, {index: ivar, name, @step})
+      # uwsc: katoy
+      # console.log "source=#{source}, ivar=#{ivar}, name="#{name}, @step=#{@step}"
+      # forPart = source.compile merge(o, {index: ivar, name, @step})
+      forPart = source.compile merge(o, {index: '_i', name, @step})
+      # console.log "forPart=#{forPart}"
     else
       svar    = @source.compile o, LEVEL_LIST
       if (name or @own) and not IDENTIFIER.test svar
@@ -1802,7 +1814,7 @@ exports.For = class For extends While
     body        = body.compile merge(o, indent: idt1), LEVEL_TOP
     body        = '\n' + body + '\n' if body
     """
-    #{defPart}#{resultPart or ''}#{@tab}for (#{forPart}) {#{guardPart}#{varPart}#{body}#{@tab}}#{returnResult or ''}
+    #{defPart}#{resultPart or ''}#{@tab}For #{forPart}#{guardPart}#{varPart}#{body}#{@tab}Next#{returnResult or ''}
     """
 
   pluckDirectCall: (o, body) ->

@@ -15,6 +15,9 @@ While (!(x < 10))
 Wend
 
 While (true)
+  If (x = 0)
+    continue
+  Endif
   If (x > 0)
     break
   Endif

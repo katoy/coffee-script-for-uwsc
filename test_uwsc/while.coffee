@@ -9,6 +9,7 @@ until x < 10
   x = x + 1
 
 loop
+  continue if x is 0
   break if x > 0
   x = x - 1
 

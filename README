@@ -33,7 +33,7 @@ Following, in Japanes,
 現時点では実装できている変換形式は ごくわずかです。  
 
 * サンプル
-Sample: ./sample_uwsc, Test: ./test_uwsc
+Sample: ./sample_uwsc, Test: ./test_uwsc  
 
 * ビルド
     $ nom instll -g coffee-script  
@@ -41,7 +41,7 @@ Sample: ./sample_uwsc, Test: ./test_uwsc
     $ cake uwsc:build:full  
 
 * 実行
-    $ ./bin/uwscscript --help
+    $ ./bin/uwscscript --help  
 簡易ヘルプが表示されます。  
 
     $ ./bin/uwscscript foo.coffee  
@@ -53,8 +53,11 @@ foo.coffee の変換結果が STDOUT に出力されます。
     $ ./bin/uwscscript -o outdir foo.coffee  
 foo.coffee の変換結果が ./outdir/foo.uwsc に出力されます。 
  
-version 0.0.1  コメント、Function, Procedure, While, loop, If-Else, Select, Class
-               後置 if, 後置 unless,  後置 while  
-               embedded
+version 0.0.1  コメント(#, ###),  
+               Function, Procedure, While, loop, If-Else, Select, Class,  
+               後置 if, 後置 unless,  後置 while,  
+               embedded uwsc,  
+               for i in [a..b] by c ...,  
+               後置 for,  
 
 //--- End of File ---
