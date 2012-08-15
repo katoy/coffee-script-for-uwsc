@@ -20,7 +20,8 @@
     "cake":       "./bin/cake"
   },
   "scripts": {
-    "test": "node ./bin/cake test"
+    "test": "node ./bin/cake test",
+    "uwsc:test": "node ./bin/cake uwsc:test"
   },
   "homepage":     "http://coffeescript.org",
   "bugs":         "https://github.com/jashkenas/coffee-script/issues",
@@ -30,6 +31,7 @@
   },
   "devDependencies": {
     "uglify-js":  ">=1.0.0",
-    "jison":      ">=0.2.0"
+    "jison":      "=0.3.7",
+    "diff":      ">=1.0.3"
   }
 }

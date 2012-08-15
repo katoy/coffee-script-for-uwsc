@@ -2,7 +2,9 @@ fs            = require 'fs'
 path          = require 'path'
 {extend}      = require './lib/coffee-script/helpers'
 CoffeeScript  = require './lib/coffee-script'
+UwscScript    = require './lib/uwsc-script/uwsc-script'
 {spawn, exec} = require 'child_process'
+diff          = require 'diff'
 
 # ANSI Terminal Colors.
 enableColors = no
@@ -27,10 +29,26 @@ header = """
    */
 """
 
+header_uwsc = """
+  /**
+   * CoffeeScript Compiler v#{UwscScript.VERSION}
+   * https://github.com/katoy/coffee-script-for-uwsc
+   *
+   * Copyright 2012, Youichi kato
+   * Released under the MIT License
+   */
+"""
+
 sources = [
   'coffee-script', 'grammar', 'helpers'
   'lexer', 'nodes', 'rewriter', 'scope'
 ].map (filename) -> "src/#{filename}.coffee"
+
+sources_uwsc = [
+  'coffee-script', 'grammar', 'helpers'
+  'lexer', 'nodes', 'rewriter', 'scope', 'uwsc-script'
+].map (filename) -> "src_uwsc/#{filename}.coffee"
+
 
 # Run a CoffeeScript through our node/coffee interpreter.
 run = (args, cb) ->
@@ -72,6 +90,12 @@ task 'build', 'build the CoffeeScript language from source', build = (cb) ->
   run ['-c', '-o', 'lib/coffee-script'].concat(files), cb
 
 
+task 'uwsc:build', 'build the UwscScript language from source', build = (cb) ->
+  files = fs.readdirSync 'src_uwsc'
+  files = ('src_uwsc/' + file for file in files when file.match(/\.coffee$/))
+  run ['-c', '-o', 'lib/uwsc-script'].concat(files), cb
+
+
 task 'build:full', 'rebuild the source twice, and run the tests', ->
   build ->
     build ->
@@ -80,12 +104,26 @@ task 'build:full', 'rebuild the source twice, and run the tests', ->
       unless runTests require csPath
         process.exit 1
 
+task 'uwsc:build:full', 'rebuild the source, and run the tests', ->
+  build ->
+    csPath = './lib/uwsc-script'
+    delete require.cache[require.resolve csPath]
+    unless uwsc_runTests require csPath
+      process.exit 1
+
 
 task 'build:parser', 'rebuild the Jison parser (run build first)', ->
   extend global, require('util')
   require 'jison'
   parser = require('./lib/coffee-script/grammar').parser
   fs.writeFile 'lib/coffee-script/parser.js', parser.generate()
+
+
+task 'uwsc:build:parser', 'rebuild the Jison parser (run build first)', ->
+  extend global, require('util')
+  require 'jison'
+  parser = require('./lib/uwsc-script/grammar').parser
+  fs.writeFile 'lib/uwsc-script/parser.js', parser.generate()
 
 
 task 'build:ultraviolet', 'build and install the Ultraviolet syntax highlighter', ->
@@ -113,8 +151,8 @@ task 'build:browser', 'rebuild the merged script for inclusion in the browser', 
 
       if (typeof define === 'function' && define.amd) {
         define(function() { return CoffeeScript; });
-      } else { 
-        root.CoffeeScript = CoffeeScript; 
+      } else {
+        root.CoffeeScript = CoffeeScript;
       }
     }(this));
   """
@@ -133,6 +171,11 @@ task 'doc:site', 'watch and continually rebuild the documentation for the websit
 
 task 'doc:source', 'rebuild the internal documentation', ->
   exec 'docco src/*.coffee && cp -rf docs documentation && rm -r docs', (err) ->
+    throw err if err
+
+
+task 'uwsc:doc:source', 'rebuild the internal documentation', ->
+  exec 'docco src_uwsc/*.coffee && cp -rf docs documentation && rm -r docs', (err) ->
     throw err if err
 
 
@@ -157,8 +200,13 @@ task 'bench', 'quick benchmark of compilation time', ->
   console.log "Compile#{time()} (#{js.length} chars)"
   console.log "total  #{ fmt total }"
 
+
 task 'loc', 'count the lines of source code in the CoffeeScript compiler', ->
   exec "cat #{ sources.join(' ') } | grep -v '^\\( *#\\|\\s*$\\)' | wc -l | tr -s ' '", (err, stdout) ->
+    console.log stdout.trim()
+
+task 'uwsc:loc', 'count the lines of source code in the CoffeeScript compiler', ->
+  exec "cat #{ sources_uwsc.join(' ') } | grep -v '^\\( *#\\|\\s*$\\)' | wc -l | tr -s ' '", (err, stdout) ->
     console.log stdout.trim()
 
 
@@ -234,9 +282,78 @@ runTests = (CoffeeScript) ->
       failures.push {filename, error}
   return !failures.length
 
+# Run the CoffeeScript test suite.
+uwsc_runTests = (UwscScript) ->
+  startTime   = Date.now()
+  currentFile = null
+  passedTests = 0
+  errorTests   = 0
+  failures    = []
+
+  run_uwsc = (filename, callback) ->
+    proc = spawn './bin/uwscscript', ['-o', 'test_uwsc/result', filename]
+    proc.stderr.on 'data', (data) -> console.log data.toString()
+    proc.stdout.on 'data', (data) -> console.log data.toString()
+    proc.on 'exit', (status) -> callback(status, filename)
+
+  # When all the tests have run, collect and print errors.
+  # If a stacktrace is available, output the compiled function source.
+  process.on 'exit', ->
+    time = ((Date.now() - startTime) / 1000).toFixed(2)
+    message = "passed #{passedTests}, error #{errorTests} tests in #{time} seconds#{reset}"
+    return log(message, green) unless failures.length
+    log "failed #{failures.length} and #{message}", red
+    for fail in failures
+      {error, filename}  = fail
+      uwscFilename       = filename.replace(/\.coffee$/,'.uwsc')
+      match              = error.stack?.match(new RegExp(fail.file+":(\\d+):(\\d+)"))
+      match              = error.stack?.match(/on line (\d+):/) unless match
+      [match, line, col] = match if match
+      console.log ''
+      log "  #{error.description}", red if error.description
+      log "  #{error.stack}", red
+      log "  #{uwscFilename}: line #{line ? 'unknown'}, column #{col ? 'unknown'}", red
+      console.log "  #{error.source}" if error.source
+    return
+
+  # Run every test in the `test_uwsc` folder, recording failures.
+  files = fs.readdirSync 'test_uwsc'
+  for file in files when file.match /\.coffee$/i
+    filename = path.join 'test_uwsc', file
+    run_uwsc filename, (status, filename) ->
+      if status != 0
+        error = new Error("uwscscript return status #{status}")
+        failures.push {filename, error }
+      else
+        basename = path.basename(filename, '.coffee')
+        ans_filename = path.join 'test_uwsc/ans', basename + '.uwsc'
+        res_filename = path.join 'test_uwsc/result', basename + '.uwsc'
+        code_ans = fs.readFileSync ans_filename
+        code_res = fs.readFileSync res_filename
+        try
+          # compare ans and result
+          diff_count = 0
+          diffResult = diff.diffWords("" + code_ans, "" + code_res)
+          for line in diffResult
+            diff_count += 1 if line.added or line.removed
+
+          # console.log "#{filename}: #{diff_count}"
+          if (diff_count == 0)
+            passedTests += 1
+          else
+            errorTests += 1
+            console.log "error:" + filename
+        catch error
+          failures.push {filename, error}
+
+  return !failures.length
 
 task 'test', 'run the CoffeeScript language test suite', ->
   runTests CoffeeScript
+
+task 'uwsc:test', 'run the UwscScript language test suite', ->
+  UwscScript  = require './lib/uwsc-script'
+  uwsc_runTests UwscScript
 
 
 task 'test:browser', 'run the test suite against the merged browser script', ->

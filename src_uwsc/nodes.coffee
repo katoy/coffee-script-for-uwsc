@@ -9,6 +9,8 @@
 # Import the helpers we plan to use.
 {compact, flatten, extend, merge, del, starts, ends, last, some} = require './helpers'
 
+g_has_uwsc_result = false
+
 exports.extend = extend  # for parser
 
 # Constant functions for nodes that don't need customization.
@@ -216,9 +218,11 @@ exports.Block = class Block extends Base
     @tab  = o.indent
     top   = o.level is LEVEL_TOP
     codes = []
+    is_comment = false  # uwsc: katoy
     for node in @expressions
       node = node.unwrapAll()
       node = (node.unfoldSoak(o) or node)
+      is_comment = true if node instanceof Comment
       if node instanceof Block
         # This is a nested block.  We don't do anything special here like enclose
         # it in a new scope; we just compile the statements in this block along with
@@ -228,7 +232,7 @@ exports.Block = class Block extends Base
         node.front = true
         code = node.compile o
         unless node.isStatement o
-          code = "#{@tab}#{code};"
+          code = "#{@tab}#{code}"
           code = "#{code}\n" if node instanceof Literal
         codes.push code
       else
@@ -237,6 +241,8 @@ exports.Block = class Block extends Base
       if @spaced
         return "\n#{codes.join '\n\n'}\n"
       else
+        # uwsc: katoy
+        return "#{codes[0]}\n" if codes.length is 1 and is_comment
         return codes.join '\n'
     code = codes.join(', ') or 'void 0'
     if codes.length > 1 and o.level >= LEVEL_LIST then "(#{code})" else code
@@ -251,17 +257,9 @@ exports.Block = class Block extends Base
     o.level   = LEVEL_TOP
     @spaced   = yes
     prelude   = ""
-    unless o.bare
-      preludeExps = for exp, i in @expressions
-        break unless exp.unwrap() instanceof Comment
-        exp
-      rest = @expressions[preludeExps.length...]
-      @expressions = preludeExps
-      prelude = "#{@compileNode merge(o, indent: '')}\n" if preludeExps.length
-      @expressions = rest
+    # uwsc katoy
     code = @compileWithDeclarations o
-    return code if o.bare
-    "#{prelude}(function() {\n#{code}\n}).call(this);\n"
+    return "#{prelude}#{code}"
 
   # Compile the expressions body for the contents of a function, with
   # declarations of all inner variables pushed up to the top.
@@ -283,13 +281,13 @@ exports.Block = class Block extends Base
       assigns = scope.hasAssignments
       if declars or assigns
         code += '\n' if i
-        code += "#{@tab}var "
+        code += "#{@tab}dim "
         if declars
           code += scope.declaredVariables().join ', '
         if assigns
           code += ",\n#{@tab + TAB}" if declars
           code += scope.assignedVariables().join ",\n#{@tab + TAB}"
-        code += ';\n'
+        code += '\n'
     code + post
 
   # Wrap up the given nodes as a **Block**, unless it already happens
@@ -331,7 +329,7 @@ exports.Literal = class Literal extends Base
       "\"#{@value}\""
     else
       @value
-    if @isStatement() then "#{@tab}#{code};" else code
+    if @isStatement() then "#{@tab}#{code}" else code
 
   toString: ->
     ' "' + @value + '"'
@@ -372,7 +370,8 @@ exports.Return = class Return extends Base
     if expr and expr not instanceof Return then expr.compile o, level else super o, level
 
   compileNode: (o) ->
-    @tab + "return#{[" #{@expression.compile o, LEVEL_PAREN}" if @expression]};"
+    # uwsc katoy remove return
+    @tab + "#{["#{@expression.compile o, LEVEL_PAREN}" if @expression]}"
 
 #### Value
 
@@ -478,14 +477,14 @@ exports.Value = class Value extends Base
 # at the same position.
 exports.Comment = class Comment extends Base
   constructor: (@comment) ->
-
+ 
   isStatement:     YES
   makeReturn:      THIS
 
   compileNode: (o, level) ->
-    code = '/*' + multident(@comment, @tab) + "\n#{@tab}*/\n"
+    # uwsc katoy
+    code = multident(@comment, @tab)
     code = o.indent + code if (level or o.level) is LEVEL_TOP
-    console.trace "------ comment:#{code}"
     code
 
 #### Call
@@ -562,7 +561,7 @@ exports.Call = class Call extends Base
     ifn
 
   # Walk through the objects in the arguments, moving over simple values.
-  # This allows syntax like `call a: b, c` into `call({a: b}, c);`
+  # This allows syntax like `call a: b, c` into `call({a: b}, c)`
   filterImplicitObjects: (list) ->
     nodes = []
     for node in list
@@ -606,9 +605,9 @@ exports.Call = class Call extends Base
       idt = @tab + TAB
       return """
         (function(func, args, ctor) {
-        #{idt}ctor.prototype = func.prototype;
-        #{idt}var child = new ctor, result = func.apply(child, args), t = typeof result;
-        #{idt}return t == "object" || t == "function" ? result || child : child;
+        #{idt}ctor.prototype = func.prototype
+        #{idt}var child = new ctor, result = func.apply(child, args), t = typeof result
+        #{idt}return t == "object" || t == "function" ? result || child : child
         #{@tab}})(#{ @variable.compile o, LEVEL_LIST }, #{splatArgs}, function(){})
       """
     base = new Value @variable
@@ -749,7 +748,7 @@ exports.Range = class Range extends Base
     idt    = @tab + TAB
     i      = o.scope.freeVariable 'i'
     result = o.scope.freeVariable 'results'
-    pre    = "\n#{idt}#{result} = [];"
+    pre    = "\n#{idt}#{result} = []"
     if @fromNum and @toNum
       o.index = i
       body    = @compileNode o
@@ -960,10 +959,10 @@ exports.Class = class Class extends Base
       @ctor.body.push new Literal "#{@externalCtor}.apply(this, arguments)" if @externalCtor
       @ctor.body.makeReturn()
       @body.expressions.unshift @ctor
-    @ctor.ctor     = @ctor.name = name
-    @ctor.klass    = null
-    @ctor.noReturn = yes
-
+      @ctor.ctor     = @ctor.name = name
+      @ctor.klass    = null
+      @ctor.noReturn = yes
+    
   # Instead of generating the JavaScript string directly, we build up the
   # equivalent syntax tree and compile that, in pieces. You can see the
   # constructor, property assignments, and inheritance getting built out below.
@@ -976,15 +975,20 @@ exports.Class = class Class extends Base
     @hoistDirectivePrologue()
     @setContext name
     @walkBody name, o
-    @ensureConstructor name
+    # uwsc katoy
+    # @ensureConstructor name
     @body.spaced = yes
-    @body.expressions.unshift @ctor unless @ctor instanceof Code
-    @body.expressions.push lname
+    # uwsc katoy
+    #@body.expressions.unshift @ctor unless @ctor instanceof Code
+    #@body.expressions.push lname
     @body.expressions.unshift @directives...
-    @addBoundFunctions o
+    # uwsc katoy
+    #@addBoundFunctions o
 
-    call  = Closure.wrap @body
-
+    # uwsc katoy
+    #call  = Closure.wrap @body
+    call = @body
+    
     if @parent
       @superClass = new Literal o.scope.freeVariable 'super', no
       @body.expressions.unshift new Extends lname, @superClass
@@ -992,9 +996,11 @@ exports.Class = class Class extends Base
       params = call.variable.params or call.variable.base.params
       params.push new Param @superClass
 
-    klass = new Parens call, yes
-    klass = new Assign @variable, klass if @variable
-    klass.compile o
+    # uwsc katoy
+    ret = "Class #{name}\n#{call.compile call}\nEndclass"
+    # klass = new Parens call, yes
+    # klass = new Assign @variable, klass if @variable
+    # klass.compile o
 
 #### Assign
 
@@ -1036,13 +1042,28 @@ exports.Assign = class Assign extends Base
         if @param
           o.scope.add name, 'var'
         else
-          o.scope.find name
+          if name.toUpperCase() is 'RESULT'
+            o.scope.add name, 'uwsc_result'
+            g_has_uwsc_result = true
+          else
+            o.scope.find name
     if @value instanceof Code and match = METHOD_DEF.exec name
       @value.klass = match[1] if match[1]
       @value.name  = match[2] ? match[3] ? match[4] ? match[5]
+
     val = @value.compile o, LEVEL_LIST
     return "#{name}: #{val}" if @context is 'object'
-    val = name + " #{ @context or '=' } " + val
+    # uwsc katoy    
+    if "#{@value.bound}" is "undefined"
+      val = name + " #{ @context or '=' } " + val
+    else
+      if g_has_uwsc_result
+        val = "Function #{val}Fend"
+      else
+        val = "Procedure #{val}Fend"
+      o.scope.add name, 'func'
+      g_has_uwsc_result = false
+
     if o.level <= LEVEL_LIST then val else "(#{val})"
 
   # Brief implementation of recursive pattern matching, when assigning array or
@@ -1222,11 +1243,13 @@ exports.Code = class Code extends Base
       else if not @static
         o.scope.parent.assign '_this', 'this'
     idt   = o.indent
-    code  = 'function'
-    code  += ' ' + @name if @ctor
-    code  += '(' + params.join(', ') + ') {'
-    code  += "\n#{ @body.compileWithDeclarations o }\n#{@tab}" unless @body.isEmpty()
-    code  += '}'
+
+    # uwsc katoy
+    code  = @name
+    # code  += ' ' + @name if @ctor
+    code  += '(' + params.join(', ') + ')'
+    code  += "\n#{  @body.compileWithDeclarations o }\n#{@tab}" unless @body.isEmpty()
+    code  += ''
     return @tab + code if @ctor
     if @front or (o.level >= LEVEL_ACCESS) then "(#{code})" else code
 
@@ -1392,16 +1415,16 @@ exports.While = class While extends Base
     else
       if @returns
         body.makeReturn rvar = o.scope.freeVariable 'results'
-        set  = "#{@tab}#{rvar} = [];\n"
+        set  = "#{@tab}#{rvar} = []\n"
       if @guard
         if body.expressions.length > 1
           body.expressions.unshift new If (new Parens @guard).invert(), new Literal "continue"
         else
           body = Block.wrap [new If @guard, body] if @guard
       body = "\n#{ body.compile o, LEVEL_TOP }\n#{@tab}"
-    code = set + @tab + "while (#{ @condition.compile o, LEVEL_PAREN }) {#{body}}"
+    code = set + @tab + "While (#{ @condition.compile o, LEVEL_PAREN })#{body}Wend"
     if @returns
-      code += "\n#{@tab}return #{rvar};"
+      code += "\n#{@tab}#{rvar}"
     code
 
 #### Op
@@ -1424,14 +1447,20 @@ exports.Op = class Op extends Base
 
   # The map of conversions from CoffeeScript to JavaScript symbols.
   CONVERSIONS =
-    '==': '==='
-    '!=': '!=='
+    # uwsc katoy
+    #'==': '==='
+    #'!=': '!=='
+    '==': '='
+    '!=': '<>'
     'of': 'in'
 
   # The map of invertible operators.
   INVERSIONS =
-    '!==': '==='
-    '===': '!=='
+    # uwsc katoy
+    #'!==': '==='
+    #'===': '!=='
+    '<>': '='
+    '=': '<>'
 
   children: ['first', 'second']
 
@@ -1608,19 +1637,20 @@ exports.Try = class Try extends Base
     errorPart = if @error then " (#{ @error.compile o }) " else ' '
     tryPart   = @attempt.compile o, LEVEL_TOP
 
+    # uwsc ktoy
     catchPart = if @recovery
       if @error.value in STRICT_PROSCRIBED
         throw SyntaxError "catch variable may not be \"#{@error.value}\""
       o.scope.add @error.value, 'param' unless o.scope.check @error.value
-      " catch#{errorPart}{\n#{ @recovery.compile o, LEVEL_TOP }\n#{@tab}}"
+      "Except //#{errorPart}\n#{ @recovery.compile o, LEVEL_TOP }\n#{@tab}"
     else unless @ensure or @recovery
-      ' catch (_error) {}'
+      "Except\n#{@tab}"
 
-    ensurePart = if @ensure then " finally {\n#{ @ensure.compile o, LEVEL_TOP }\n#{@tab}}" else ''
+    ensurePart = if @ensure then "Finally\n#{ @ensure.compile o, LEVEL_TOP }\n#{@tab}" else ''
 
-    """#{@tab}try {
+    """#{@tab}Try
     #{tryPart}
-    #{@tab}}#{ catchPart or '' }#{ensurePart}"""
+    #{@tab}#{ catchPart or '' }#{ensurePart}Endtry"""
 
 #### Throw
 
@@ -1637,7 +1667,7 @@ exports.Throw = class Throw extends Base
   makeReturn: THIS
 
   compileNode: (o) ->
-    @tab + "throw #{ @expression.compile o };"
+    @tab + "throw #{ @expression.compile o }"
 
 #### Existence
 
@@ -1684,7 +1714,7 @@ exports.Parens = class Parens extends Base
       return expr.compile o
     code = expr.compile o, LEVEL_PAREN
     bare = o.level < LEVEL_OP and (expr instanceof Op or expr instanceof Call or
-      (expr instanceof For and expr.returns))
+      (expr instanceof For and expr.returns))    
     if bare then code else "(#{code})"
 
 #### For
@@ -1742,7 +1772,7 @@ exports.For = class For extends While
     else
       svar    = @source.compile o, LEVEL_LIST
       if (name or @own) and not IDENTIFIER.test svar
-        defPart    = "#{@tab}#{ref = scope.freeVariable 'ref'} = #{svar};\n"
+        defPart    = "#{@tab}#{ref = scope.freeVariable 'ref'} = #{svar}\n"
         svar       = ref
       if name and not @pattern
         namePart   = "#{name} = #{svar}[#{kvar}]"
@@ -1753,8 +1783,9 @@ exports.For = class For extends While
         stepPart   = "#{kvarAssign}#{if @step then "#{ivar} += #{stepvar}" else (if kvar isnt ivar then "++#{ivar}" else "#{ivar}++")}"
         forPart    = "#{forVarPart}; #{ivar} < #{lvar}; #{stepPart}"
     if @returns
-      resultPart   = "#{@tab}#{rvar} = [];\n"
-      returnResult = "\n#{@tab}return #{rvar};"
+      resultPart   = "#{@tab}#{rvar} = []\n"
+      ## uwsc katoy
+      returnResult = "\n#{@tab}#{rvar}"
       body.makeReturn rvar
     if @guard
       if body.expressions.length > 1
@@ -1767,7 +1798,7 @@ exports.For = class For extends While
     varPart     = "\n#{idt1}#{namePart};" if namePart
     if @object
       forPart   = "#{kvar} in #{svar}"
-      guardPart = "\n#{idt1}if (!#{utility 'hasProp'}.call(#{svar}, #{kvar})) continue;" if @own
+      guardPart = "\n#{idt1}if (!#{utility 'hasProp'}.call(#{svar}, #{kvar})) continue" if @own
     body        = body.compile merge(o, indent: idt1), LEVEL_TOP
     body        = '\n' + body + '\n' if body
     """
@@ -1791,7 +1822,7 @@ exports.For = class For extends While
       if val.base
         [val.base, base] = [base, val]
       body.expressions[idx] = new Call base, expr.args
-      defs += @tab + new Assign(ref, fn).compile(o, LEVEL_TOP) + ';\n'
+      defs += @tab + new Assign(ref, fn).compile(o, LEVEL_TOP) + '\n'
     defs
 
 #### Switch
@@ -1818,18 +1849,19 @@ exports.Switch = class Switch extends Base
   compileNode: (o) ->
     idt1 = o.indent + TAB
     idt2 = o.indent = idt1 + TAB
-    code = @tab + "switch (#{ @subject?.compile(o, LEVEL_PAREN) or false }) {\n"
+    # uwsc katoy
+    code = @tab + "Select (#{ @subject?.compile(o, LEVEL_PAREN) or false })\n"
     for [conditions, block], i in @cases
       for cond in flatten [conditions]
         cond  = cond.invert() unless @subject
-        code += idt1 + "case #{ cond.compile o, LEVEL_PAREN }:\n"
+        code += idt1 + "Case #{ cond.compile o, LEVEL_PAREN }\n"
       code += body + '\n' if body = block.compile o, LEVEL_TOP
       break if i is @cases.length - 1 and not @otherwise
       expr = @lastNonComment block.expressions
       continue if expr instanceof Return or (expr instanceof Literal and expr.jumps() and expr.value isnt 'debugger')
-      code += idt2 + 'break;\n'
-    code += idt1 + "default:\n#{ @otherwise.compile o, LEVEL_TOP }\n" if @otherwise and @otherwise.expressions.length
-    code +  @tab + '}'
+      # code += idt2 + 'break\n'
+    code += idt1 + "Default\n#{ @otherwise.compile o, LEVEL_TOP }\n" if @otherwise and @otherwise.expressions.length
+    code +  @tab + 'Selend'
 
 #### If
 
@@ -1891,15 +1923,15 @@ exports.If = class If extends Base
     cond     = @condition.compile o, LEVEL_PAREN
     o.indent += TAB
     body     = @ensureBlock(@body)
-    ifPart   = "if (#{cond}) {\n#{body.compile(o)}\n#{@tab}}"
+    ifPart   = "If (#{cond})\n#{body.compile(o)}\n#{@tab}"
     ifPart   = @tab + ifPart unless child
-    return ifPart unless @elseBody
-    ifPart + ' else ' + if @isChain
+    return ifPart + "Endif" unless @elseBody
+    ifPart + 'Else ' + if @isChain
       o.indent = @tab
       o.chainChild = yes
       @elseBody.unwrap().compile o, LEVEL_TOP
     else
-      "{\n#{ @elseBody.compile o, LEVEL_TOP }\n#{@tab}}"
+      "\n#{ @elseBody.compile o, LEVEL_TOP }\n#{@tab}Endif"
 
   # Compile the `If` as a conditional operator.
   compileExpression: (o) ->
@@ -1966,12 +1998,12 @@ UTILITIES =
 
   # Create a function bound to the current value of "this".
   bind: -> '''
-    function(fn, me){ return function(){ return fn.apply(me, arguments); }; }
+    function(fn, me){ return function(){ return fn.apply(me, arguments) } }
   '''
 
   # Discover if an item is in an array.
   indexOf: -> """
-    [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; }
+    [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i } return -1 }
   """
 
   # Shortcuts to speed up the lookup time for native functions.
@@ -2022,5 +2054,36 @@ utility = (name) ->
   ref
 
 multident = (code, tab) ->
-  code = code.replace /\n/g, '$&' + tab
-  code.replace /\s+$/, ''
+  # uwsc katoy
+  # code = code.replace /\n/g, '$&' + tab
+  # 先頭、末尾の余分な文字を削除する
+  code = code.replace /^\n/, ''    # 先頭が空行 (###\n の \n の部分)
+  code = code.replace /\n. $/, ''  # 末尾の空白を削除
+  code = code.replace /\n$/, ''    # 末尾の空行を削除 (\n### の \n の部分)
+  
+  ans = ''
+  line_idx = 0
+  lines = "#{code}".split('\n')
+  lines_last_idx = lines.length - 1
+  for line in lines
+    # コメント部の indent 文字列を取り除く
+    line = line.substring(tab.length) if (line.indexOf(tab) == 0)
+    if line_idx == 0
+      ans += "//#{line}\n" if line != ''
+    else
+      if line_idx < lines_last_idx
+        ans += "#{tab}//#{line}\n"
+      else
+        #  終了の ### の前の indent 部の行を削除する。
+        ans += "#{tab}//#{line}\n"  unless (lines_last_idx != 0) and (line is '')
+    line_idx += 1
+
+  ans = ans.replace /\n$/, ''  # 末尾の改行を削除
+  #console.trace "------ comment:#{ans}:"
+  ans
+  
+  #code = code.replace /\n/g, '$&' + tab + '//' 
+  #'//' + code.replace /\s+$/, ''
+
+  #code = code.replace /\n/g, '$&//' + tab
+  #code.replace /\s+$/, ''

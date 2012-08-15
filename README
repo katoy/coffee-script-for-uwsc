@@ -1,51 +1,59 @@
 
-            {
-         }   }   {
-        {   {  }  }
-         }   }{  {
-        {  }{  }  }                    _____       __  __
-       ( }{ }{  { )                   / ____|     / _|/ _|
-     .- { { }  { }} -.               | |     ___ | |_| |_ ___  ___
-    (  ( } { } { } }  )              | |    / _ \|  _|  _/ _ \/ _ \
-    |`-..________ ..-'|              | |___| (_) | | | ||  __/  __/
-    |                 |               \_____\___/|_| |_| \___|\___|
-    |                 ;--.
-    |                (__  \            _____           _       _
-    |                 | )  )          / ____|         (_)     | |
-    |                 |/  /          | (___   ___ _ __ _ _ __ | |_
-    |                 (  /            \___ \ / __| '__| | '_ \| __|
-    |                 |/              ____) | (__| |  | | |_) | |_
-    |                 |              |_____/ \___|_|  |_| .__/ \__|
-     `-.._________..-'                                  | |
-                                                        |_|
+See ./README_coffee for CoffeeScrit.
 
+This is UwscScript.  
 
-  CoffeeScript is a little language that compiles into JavaScript.
+The UwscScript is one compiler based on Coffeescript (ver 1.3.3)ß,
+reads script written by CoffeeScript, writes script written by uwsc.
+See [http://www.uwsc.info/](http://www.uwsc.info/) , for uwsc.
 
-  Install Node.js, and then the CoffeeScript compiler:
-  sudo bin/cake install
+* Sample
+[Sample](./sample_uwsc), [Test](./test_uwsc)
 
-  Or, if you have the Node Package Manager installed:
-  npm install -g coffee-script
-  (Leave off the -g if you don't wish to install globally.)
+* Build
+    $ nom instll -g coffee-script
+    $ npm install
+    $ cake uwsc:build:full
 
-  Execute a script:
-  coffee /path/to/script.coffee
+* Run
+    $ ./bin/uwscscript foo.coffee  
+It will generate converted script to ./foo.uwsc.  
 
-  Compile a script:
-  coffee -c /path/to/script.coffee
+    $ ./bin/uwscscript -p foo.coffee  
+It will generate converted script to STDOUT
 
-  For documentation, usage, and examples, see:
-  http://coffeescript.org/
+    $ ./bin/uwscscript -o outdir foo.coffee  
+It will generate converted script to ./outdir/foo.uwsc. 
 
-  To suggest a feature, report a bug, or general discussion:
-  http://github.com/jashkenas/coffee-script/issues/
+Following, in Japanes,  
 
-  If you'd like to chat, drop by #coffeescript on Freenode IRC,
-  or on webchat.freenode.net.
+これは  
+　　CoffeeSript 風の書式のスクリプトコードから UWSC の書式のスクリプトコードを生成する  
+変換プログラムです。  
+現時点では実装できている変換形式は ごくわずかです。  
 
-  The source repository:
-  git://github.com/jashkenas/coffee-script.git
+* サンプル
+[Sample](./sample_uwsc), [Test](./test_uwsc)
 
-  All contributors are listed here:
-  http://github.com/jashkenas/coffee-script/contributors
+* ビルド
+    $ nom instll -g coffee-script  
+    $ npm install  
+    $ cake uwsc:build:full  
+
+* 実行
+    $ ./bin/uwscscript --help
+簡易ヘルプが表示されます。  
+
+    $ ./bin/uwscscript foo.coffee  
+foo.coffee の変換結果が foo.uwsc に出力されます。  
+
+    $ ./bin/uwscscript -p foo.coffee  
+foo.coffee の変換結果が STDOUT に出力されます。  
+
+    $ ./bin/uwscscript -o outdir foo.coffee  
+foo.coffee の変換結果が ./outdir/foo.uwsc に出力されます。 
+ 
+version 0.0.1  コメント、Function, Procedure, While, loop, If-Else, Select, Class
+               後置 if, 後置 unless,  後置 while  
+
+//--- End of File ---
