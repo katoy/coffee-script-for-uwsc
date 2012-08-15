@@ -5,10 +5,10 @@ This is UwscScript.
 
 The UwscScript is one compiler based on Coffeescript (ver 1.3.3)ß,
 reads script written by CoffeeScript, writes script written by uwsc.
-See [http://www.uwsc.info/](http://www.uwsc.info/) , for uwsc.
+See http://www.uwsc.info/ , for uwsc.
 
 * Sample
-[Sample](./sample_uwsc), [Test](./test_uwsc)
+Sample: ./sample_uwsc, Test: ./test_uwsc
 
 * Build
     $ nom instll -g coffee-script
@@ -33,7 +33,7 @@ Following, in Japanes,
 現時点では実装できている変換形式は ごくわずかです。  
 
 * サンプル
-[Sample](./sample_uwsc), [Test](./test_uwsc)
+Sample: ./sample_uwsc, Test: ./test_uwsc
 
 * ビルド
     $ nom instll -g coffee-script  
@@ -55,5 +55,6 @@ foo.coffee の変換結果が ./outdir/foo.uwsc に出力されます。
  
 version 0.0.1  コメント、Function, Procedure, While, loop, If-Else, Select, Class
                後置 if, 後置 unless,  後置 while  
+               embedded
 
 //--- End of File ---
