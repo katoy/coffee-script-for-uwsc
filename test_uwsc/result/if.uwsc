@@ -13,16 +13,24 @@ Endif
 
 If (a = 1)
   b = 2
-Else 
+Else
   b = 3
+Endif
+
+If (a = 1)
+  b = 2
+ElseIf (a = 2)
+  b = 3
+Else
+  b = 4
 Endif
 
 If (a = 2)
   b = 4
-Else 
+Else
   If (a = 1)
     b = 5
-  Else 
+  Else
     b = 6
   Endif
 Endif

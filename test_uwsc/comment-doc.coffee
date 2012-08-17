@@ -63,5 +63,3 @@ class Base
   @set_count = (val)->
     ### xxx ###
     count = val
-    ### xxx ###
-    count = count + 1

@@ -1,7 +1,7 @@
 
 `
 // uwsc を直接 埋め込む
-If a = 1 To 1o
+If a = 1 To 10
  Print "[1]"
 Endif
 `

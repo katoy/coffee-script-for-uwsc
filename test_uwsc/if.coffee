@@ -11,6 +11,14 @@ if a is 1
 else
   b = 3
 
+if a is 1
+  b = 2
+else if a is 2
+  b = 3
+else
+  b = 4
+
+
 if a is 2
   b = 4
 else

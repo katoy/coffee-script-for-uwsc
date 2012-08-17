@@ -18,6 +18,6 @@ class Duck
   this.walk = (name) ->
     log name
 
-console.log Duck.say('Kato')
-console.log Duck.sayx('Youichi')
+PRINT Duck.say('Kato')
+PRINT Duck.sayx('Youichi')
 Duck.walk('Youichi')

@@ -28,8 +28,8 @@ Class Duck
 
 Endclass
 
-console.log(Duck.say('Kato'))
+PRINT Duck.say('Kato')
 
-console.log(Duck.sayx('Youichi'))
+PRINT Duck.sayx('Youichi')
 
 Duck.walk('Youichi')

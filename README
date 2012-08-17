@@ -54,10 +54,12 @@ foo.coffee の変換結果が STDOUT に出力されます。
 foo.coffee の変換結果が ./outdir/foo.uwsc に出力されます。 
  
 version 0.0.1  コメント(#, ###),  
-               Function, Procedure, While, loop, If-Else, Select, Class,  
+               Function, Procedure, While, loop, If-Else, If-ElseIf-Else,  
+               Select, Class,  
                後置 if, 後置 unless,  後置 while,  
                embedded uwsc,  
                for i in [a..b] by c ...,  
                後置 for,  
+               PRINT, Call,  
 
 //--- End of File ---

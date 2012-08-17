@@ -66,7 +66,10 @@ exports.Base = class Base
     else
       ref = new Literal reused or o.scope.freeVariable 'ref'
       sub = new Assign ref, this
-      if level then [sub.compile(o, level), ref.value] else [sub, ref]
+      # uwsc: katoy
+      # if level then [sub.compile(o, level), ref.value] else [sub, ref]
+      v = ref = if level then @compile o, level else this
+      [v, ref]
 
   # Compile to a source/variable pair suitable for looping.
   compileLoopReference: (o, name) ->
@@ -237,9 +240,13 @@ exports.Block = class Block extends Base
         codes.push code
       else
         codes.push node.compile o, LEVEL_LIST
+    # console.log "----------top = #{top}, spaced=#{@spaced}, codes=[#{codes}]"
     if top
       if @spaced
         return "\n#{codes.join '\n\n'}\n"
+      else if @spaced == false
+        # uwsc: katoy
+        return codes.join ''
       else
         # uwsc: katoy
         return "#{codes[0]}\n" if codes.length is 1 and is_comment
@@ -275,6 +282,9 @@ exports.Block = class Block extends Base
       [code  , @spaced] = [(@compileNode o), spaced]
       @expressions = rest
     post = @compileNode o
+    #console.log "----- code:[#{code}]"
+    #console.log "      post:[#{post}]"
+    #console.log "         i:[#{i}, spaced=#{spaced}]"
     {scope} = o
     if scope.expressions is this
       declars = o.scope.hasDeclarations()
@@ -287,6 +297,8 @@ exports.Block = class Block extends Base
         if assigns
           code += ",\n#{@tab + TAB}" if declars
           code += scope.assignedVariables().join ",\n#{@tab + TAB}"
+        code += '\n'
+      else if code != ''
         code += '\n'
     code + post
 
@@ -450,6 +462,8 @@ exports.Value = class Value extends Base
     code  = @base.compile o, if props.length then LEVEL_ACCESS else null
     code  = "#{code}." if (@base instanceof Parens or props.length) and SIMPLENUM.test code
     code += prop.compile o for prop in props
+    #console.trace("compileNode")
+    #console.log "---------- code=[#{code}]"
     code
 
   # Unfold a soak into an `If`: `a?.b` -> `a.b if a?`
@@ -485,6 +499,7 @@ exports.Comment = class Comment extends Base
     # uwsc katoy
     code = multident(@comment, @tab)
     code = o.indent + code if (level or o.level) is LEVEL_TOP
+    # console.trace "--- comment:#{code}"
     code
 
 #### Call
@@ -588,7 +603,17 @@ exports.Call = class Call extends Base
     if @isSuper
       @superReference(o) + ".call(#{@superThis(o)}#{ args and ', ' + args })"
     else
-      (if @isNew then 'new ' else '') + @variable.compile(o, LEVEL_ACCESS) + "(#{args})"
+      # uwsc: katoy 
+      fname = @variable.compile(o, LEVEL_ACCESS)
+      fnameUpper = fname.toUpperCase()
+      if fnameUpper is 'PRINT'
+        "PRINT #{args}"
+      else if fnameUpper is 'CALL'
+        "CALL #{args}"
+      else if fnameUpper is 'HASHTBL'
+        "HashTbl #{args}"
+      else
+        (if @isNew then 'new ' else '') + "#{fname}(#{args})"
 
   # `super()` is converted into a call against the superclass's implementation
   # of the current function.
@@ -703,7 +728,8 @@ exports.Range = class Range extends Base
     idx      = del o, 'index'
     idxName  = del o, 'name'
     namedIndex = idxName and idxName isnt idx
-    #console.log "idx=#{idx}, idxName=#{idxName}, namedIndex=#{namedIndex}, @from=#{@fromC},#{@fromVar}, @to=#{@toC},#{@toVar} @step=#{@sterp},#{@stepVar}"
+    # console.log "idx=#{idx}, idxName=#{idxName}, namedIndex=#{namedIndex}, @from=#{@fromC},#{@fromVar}, @to=#{@toC},#{@toVar} @step=#{@sterp},#{@stepVar}"
+    # console.log "     fromNum=#{@fromNum}, toNum=#{@toNum}, stepNum=#{@setpNum}"
     # uwsc: katoy
     varPart   = "#{idxName} = #{@fromC} To #{@toC}"
     varPart  += " Step #{@step}"  if @stepVar
@@ -983,7 +1009,7 @@ exports.Class = class Class extends Base
     @walkBody name, o
     # uwsc katoy
     # @ensureConstructor name
-    @body.spaced = yes
+    @body.spaced = no
     # uwsc katoy
     #@body.expressions.unshift @ctor unless @ctor instanceof Code
     #@body.expressions.push lname
@@ -1541,6 +1567,8 @@ exports.Op = class Op extends Base
     return @compileUnary     o if @isUnary()
     return @compileChain     o if isChain
     return @compileExistence o if @operator is '?'
+    # uwsc: katoy
+    @operator = 'mod' if @operator is '%'
     code = @first.compile(o, LEVEL_OP) + ' ' + @operator + ' ' +
            @second.compile(o, LEVEL_OP)
     if o.level <= LEVEL_OP then code else "(#{code})"
@@ -1872,8 +1900,8 @@ exports.Switch = class Switch extends Base
       expr = @lastNonComment block.expressions
       continue if expr instanceof Return or (expr instanceof Literal and expr.jumps() and expr.value isnt 'debugger')
       # code += idt2 + 'break\n'
-    code += idt1 + "Default\n#{ @otherwise.compile o, LEVEL_TOP }\n" if @otherwise and @otherwise.expressions.length
-    code +  @tab + 'Selend'
+    code += idt1 + "Default\n#{ @otherwise.compile o, LEVEL_TOP }" if @otherwise and @otherwise.expressions.length
+    code +  "\n" + @tab + 'Selend'
 
 #### If
 
@@ -1938,12 +1966,12 @@ exports.If = class If extends Base
     ifPart   = "If (#{cond})\n#{body.compile(o)}\n#{@tab}"
     ifPart   = @tab + ifPart unless child
     return ifPart + "Endif" unless @elseBody
-    ifPart + 'Else ' + if @isChain
+    ifPart + 'Else' + if @isChain   # uwsc: katoy
       o.indent = @tab
       o.chainChild = yes
       @elseBody.unwrap().compile o, LEVEL_TOP
     else
-      "\n#{ @elseBody.compile o, LEVEL_TOP }\n#{@tab}Endif"
+      "\n#{ @elseBody.compile o, LEVEL_TOP }\n#{@tab}Endif"   # uwsc: katoy
 
   # Compile the `If` as a conditional operator.
   compileExpression: (o) ->
