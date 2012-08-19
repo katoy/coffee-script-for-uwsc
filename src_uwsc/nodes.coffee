@@ -64,8 +64,8 @@ exports.Base = class Base
       ref = if level then @compile o, level else this
       [ref, ref]
     else
-      ref = new Literal reused or o.scope.freeVariable 'ref'
-      sub = new Assign ref, this
+      ref = new Literal reused or o.scope.freeVariable 'ref', no
+      # sub = new Assign ref, this
       # uwsc: katoy
       # if level then [sub.compile(o, level), ref.value] else [sub, ref]
       v = ref = if level then @compile o, level else this
@@ -234,23 +234,24 @@ exports.Block = class Block extends Base
       else if top
         node.front = true
         code = node.compile o
+        # console.log "----- block 0:[#{code}]"
         unless node.isStatement o
           code = "#{@tab}#{code}"
-          code = "#{code}\n" if node instanceof Literal
+          code = "#{code}" if node instanceof Literal
         codes.push code
       else
         codes.push node.compile o, LEVEL_LIST
     # console.log "----------top = #{top}, spaced=#{@spaced}, codes=[#{codes}]"
     if top
-      if @spaced
-        return "\n#{codes.join '\n\n'}\n"
-      else if @spaced == false
+      #if @spaced
+      #  return "\n#{codes.join '\n\n'}\n"
+      #else if @spaced == false
+      #  # uwsc: katoy
+      #  return codes.join ''
+      #else
         # uwsc: katoy
-        return codes.join ''
-      else
-        # uwsc: katoy
-        return "#{codes[0]}\n" if codes.length is 1 and is_comment
-        return codes.join '\n'
+      return "#{codes[0]}\n" if codes.length is 1 and is_comment
+      return codes.join '\n'
     code = codes.join(', ') or 'void 0'
     if codes.length > 1 and o.level >= LEVEL_LIST then "(#{code})" else code
 
@@ -341,6 +342,8 @@ exports.Literal = class Literal extends Base
       "\"#{@value}\""
     else
       @value
+    #console.log "Literal: code=[#{code}]"
+    #console.trace "Loteral"
     if @isStatement() then "#{@tab}#{code}" else code
 
   toString: ->
@@ -1029,7 +1032,7 @@ exports.Class = class Class extends Base
       params.push new Param @superClass
 
     # uwsc katoy
-    ret = "Class #{name}\n#{call.compile call}\nEndclass"
+    ret = "Class #{name}\n#{call.compile call}\nEndclass\n"
     # klass = new Parens call, yes
     # klass = new Assign @variable, klass if @variable
     # klass.compile o
@@ -1422,7 +1425,9 @@ exports.While = class While extends Base
     if res
       super
     else
-      @returns = not @jumps loop: yes
+      # uwsc: katoy
+      # @returns = not @jumps loop: yes
+      @returns = no
       this
 
   addBody: (@body) ->
@@ -1455,6 +1460,9 @@ exports.While = class While extends Base
           body = Block.wrap [new If @guard, body] if @guard
       body = "\n#{ body.compile o, LEVEL_TOP }\n#{@tab}"
     code = set + @tab + "While (#{ @condition.compile o, LEVEL_PAREN })#{body}Wend"
+    # code += "\n" if o.level is LEVEL_TOP
+    # console.log "---- while: o.level=#{o.level}, body.level=#{body.level}, @spaced=#{@spaced}, returns=#{this.returns}"
+    # console.trace("while: code=[#{code}]" )
     if @returns
       code += "\n#{@tab}#{rvar}"
     code

@@ -34,26 +34,26 @@ test003 = () ->
     1
 
 # "comments in functions"
-test004 = () ->
-  fn = ->
-  # comment
+class test004
+  @fn = ->
+    # comment
     false
     false   # comment
     false
     # comment
 
-  # comment
+    # comment
     true
 
-  fn2 = -> #comment
+  @fn2 = -> #comment
     fn()
     # comment
 
 
 # "trailing comment before an outdent"
-test005 = () ->
+class test005
   nonce = {}
-  fn3 = ->
+  @fn3 = ->
     if true
       undefined # comment
     nonce
@@ -100,28 +100,28 @@ test008 = () ->
 
 
 # "block comments in functions"
-test009 = () ->
+class test009
   nonce = 0
 
-  fn1 = ->
+  @fn1 = ->
     true
     ###
     false
     ###
 
-  fn2 =  ->
+  @fn2 =  ->
     ###
     block comment
     ###
     nonce
 
-  fn3 = ->
+  @fn3 = ->
     nonce
   ###
   block comment
   ###
 
-  fn4 = ->
+  @fn4 = ->
     one = ->
       ###
         block comment

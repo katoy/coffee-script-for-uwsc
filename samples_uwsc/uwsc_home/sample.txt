@@ -1,0 +1,1723 @@
+#
+#  See
+#     http://www.uwsc.info/sample.html
+#
+#  変変できない記述は `` で囲んで直接 uwsc を書いている。
+#
+
+### -----------------------------------------------------------------
+// 記録保存したスクリプトを無限ループで実行　　#n1
+While True
+    Call xxxx.uws      // xxxx.uws 記録保存したスクリプト名
+    Sleep(10)          // 10秒の間を取る
+Wend
+----------------------------------------------------------------- ###
+class n1
+  @main = ->
+    while true
+      Call "xxxx.uws"   # xxxx.uws 記録保存したスクリプト名
+      Sleep 10          # 10秒の間を取る
+
+### -----------------------------------------------------------------
+// 記録保存したスクリプトを１０回ループで実行 #n2
+for 回数 = 1 to 10
+    Call xxxx.uws      // xxxx.uws 記録保存したスクリプト名
+    print 回数
+next
+----------------------------------------------------------------- ###
+class n2
+  @main = ->
+    for 回数 in [1..10]
+      Call "xxxx.uws"   # xxxx.uws 記録保存したスクリプト名
+      Print 回数
+
+### -----------------------------------------------------------------
+// 関数(Function)の使用　　#n3
+public G = 0           // グローバル変数
+a = 1                  // ローカル変数
+b = 2
+c = 計算(a, b)
+print  c               // 3
+print  G               // 99
+// Mainプログラムはここで終わり（関数定義の前までになる）
+
+// Function 戻り値あり（Result変数に戻り値を入れる)
+Function 計算(ka, kb)        // 関数名 ２バイト文字でもOK
+    Result = ka + kb         //  関数の戻り値は  Result変数
+    G = 99                   // グローバル変数
+Fend
+----------------------------------------------------------------- ###
+class n2
+  @main = ->
+    `public G = 0          # グローバル変数`    # TODO
+    a = 1                  # ローカル変数
+    b = 2
+    c = 計算(a, b)
+    print  c               # 3
+    print  G               # 99
+
+  ### Function 戻り値あり（Result変数に戻り値を入れる)  ###
+  @計算 = (ka, kb) ->      # 関数名 ２バイト文字でもOK
+    Result = ka + kb       # 関数の戻り値は  Result変数
+    `G = 99                # グローバル変数`   # TODO
+
+### -----------------------------------------------------------------
+// プロシージャ(Procedure)の使用　　#n4
+あ = 0                 // 変数名 ２バイト文字でもOK
+い = 0
+TETUZUKI(あ, い)
+print あ               // 0
+print い               // 99
+// Mainプログラムはここで終わり（関数定義の前までになる）
+
+// Procedure 戻り値なし
+Procedure TETUZUKI(a, var b)
+    a = 99
+    b = 99            // var指定により呼び出し元の値は変更される
+Fend
+----------------------------------------------------------------- ###
+class n4
+  @main = ->
+    あ = 0                 # 変数名 ２バイト文字でもOK
+    い = 0
+    TETUZUKI(あ, い)
+    print あ               # 0
+    print い               # 99
+
+  ### Procedure 戻り値なし ###
+  `Procedure TETUZUKI(a, var b)
+    a = 99
+    b = 99            // var指定により呼び出し元の値は変更される
+  Fend`               # TODO
+### -----------------------------------------------------------------
+// 開いているウインドウを全て閉じる　　#n5
+for i = 0 to GETALLWIN()-1            // 全てのウインドウＩＤをゲット（ALL_WIN_ID[]変数に入る）
+    if STATUS(ALL_WIN_ID[i], ST_CLASS) = "Shell_TrayWnd" then Continue    // タスクバーはスキップ
+    if STATUS(ALL_WIN_ID[i], ST_VISIBLE) then CTRLWIN(ALL_WIN_ID[i], CLOSE)
+next
+----------------------------------------------------------------- ###
+class n5
+  @main = ->
+    for i in [0 .. GETALLWIN()-1]          # 全てのウインドウＩＤをゲット（ALL_WIN_ID[]変数に入る）
+      continue                       if STATUS(ALL_WIN_ID[i], ST_CLASS) is "Shell_TrayWnd"  # タスクバーはスキップ
+      CTRLWIN(ALL_WIN_ID[i], CLOSE)  if STATUS(ALL_WIN_ID[i], ST_VISIBLE)
+
+### -----------------------------------------------------------------
+// メモ帳を起動し使用できるフォント名の取得　　#n6
+id = EXEC("notepad.exe")
+ClkItem(id, "フォント")
+idfnt = GETID("フォント")
+kz = GETITEM(idfnt, ITM_LIST, 1)
+print "フォント数" + kz
+for i = 0 to kz-1
+    print ALL_ITEM_LIST[i]
+next
+----------------------------------------------------------------- ###
+class n6
+  @main = ->
+    id = EXEC("notepad.exe")
+    ClkItem(id, "フォント")
+    idfnt = GETID("フォント")
+    kz = GETITEM(idfnt, ITM_LIST, 1)
+    print "フォント数" + kz
+    print ALL_ITEM_LIST[i]  for i in [0 .. kz - 1]
+
+### -----------------------------------------------------------------
+// ボリュームを変える　　#n7
+ifb KINDOFOS() >= 12
+    KBD(VK_VOLUME_UP)                    // Win2000以上ならばこれだけ
+else
+    volid = Exec("SNDVOL32.exe /t")      // メインボリュームのみ表示
+    値 = GETSLIDER(volid, 1)             // 現在値
+    SETSLIDER(volid, 値-10)              // 音量を少し上げる(レンジ０〜２５５)
+endif
+----------------------------------------------------------------- ###
+class n7
+  @main = ->
+    if KINDOFOS() >= 12
+      KBD VK_VOLUME_UP                      # Win2000以上ならばこれだけ
+    else
+      volid = Exec "SNDVOL32.exe /t"        # メインボリュームのみ表示
+      値 = GETSLIDER(volid, 1)               # 現在値
+      SETSLIDER(volid, 値 - 10)              # 音量を少し上げる(レンジ０〜２５５)
+
+### -----------------------------------------------------------------
+// 常にＩＭＥをオンにする　　#n8
+while True
+    if  ! GETKEYSTATE(TGL_IME) then KBD(VK_KANJI)
+    Sleep(0.2)
+wend
+----------------------------------------------------------------- ###
+class n8
+  @main = ->
+    while True
+      KBD(VK_KANJI) unless GETKEYSTATE(TGL_IME)
+      Sleep 0.2
+
+### -----------------------------------------------------------------
+// CTRLキーにてアクティブウィンドウの画像保存　　#n9
+GETKEYSTATE(VK_CTRL)
+while True
+    ifb GETKEYSTATE(VK_CTRL)
+        id = GETID(GET_ACTIVE_WIN)
+        titl = STATUS(id, ST_TITLE)
+        if titl <> "" then SAVEIMG(titl, id)    // タイトル名にて保存
+    endif
+    Sleep(0.2)
+wend
+----------------------------------------------------------------- ###
+class n9
+  @main = ->
+    GETKEYSTATE(VK_CTRL)
+    while True
+      if GETKEYSTATE(VK_CTRL)
+        id = GETID(GET_ACTIVE_WIN)
+        title = STATUS(id, ST_TITLE)
+        SAVEIMG(title, id) if title != ""   # タイトル名にて保存
+      Sleep 0.2
+
+### -----------------------------------------------------------------
+// SHIFTキーにてマウス下のオブジェクト画像をJPEGにて保存　　#n10
+GETKEYSTATE(VK_SHIFT)
+num = 1
+while True
+    ifb GetKeyState(VK_SHIFT)
+        id = GETID(GET_FROMPOINT_OBJ)           // マウスカーソル下のオブジェクト
+        SAVEIMG("Image"+num, id, , , , , , 50)  // "Image?.jpg" (圧縮率50%)にて保存
+        num = num + 1
+    endif
+    Sleep(0.2)
+wend
+----------------------------------------------------------------- ###
+class n10
+  @main = ->
+    GETKEYSTATE(VK_SHIFT)
+    num = 1
+    while True
+      if GetKeyState(VK_SHIFT)
+        id = GETID(GET_FROMPOINT_OBJ)           # マウスカーソル下のオブジェクト
+        `SAVEIMG("Image"+num, id, , , , , , 50)  # "Image?.jpg" (圧縮率50%)にて保存`   # TODO
+        num += 1
+      Sleep 0.2
+
+### -----------------------------------------------------------------
+// csvファイルのデータを xxxx.exe アプリに 10秒毎に設定する　　#n11
+app = Exec("xxxx.exe")                          // xxxxアプリ起動
+fid = FOpen("testdata.csv", F_READ)             // csvファイル(3列構成)
+for i = 1 to FGET(fid, F_LINECOUNT)             // F_LINECOUNT指定で行数が得られる
+    SendStr(app, FGet(fid, i, 1), 1, True)
+    SendStr(app, FGet(fid, i, 2), 2, True)
+    ss = Replace(Format(FGet(fid, i, 3), 5), " ", "0")   // 00000(5桁)の形にする
+    SendStr(app, ss, 3, True)
+    Sleep(10)
+next
+FClose(fid)
+----------------------------------------------------------------- ###
+class n11
+  @main = ->
+    app = Exec "xxxx.exe"                           # xxxxアプリ起動
+    fid = FOpen("testdata.csv", F_READ)             # csvファイル(3列構成)
+    for i in [1 .. FGET(fid, F_LINECOUNT)]          # F_LINECOUNT指定で行数が得られる
+      SendStr(app, FGet(fid, i, 1), 1, True)
+      SendStr(app, FGet(fid, i, 2), 2, True)
+      ss = Replace(Format(FGet(fid, i, 3), 5), " ", "0")   # 00000(5桁)の形にする
+      SendStr(app, ss, 3, True)
+      Sleep 10
+    FClose fid
+
+### -----------------------------------------------------------------
+// OKボタンにマウスを移動する　　#n12
+while True
+  wid = -1
+  while True
+    ifb wid <> GETID(GET_ACTIVE_WIN)          // アクティブウィンドウが変わった
+        wid = GETID(GET_ACTIVE_WIN)
+        CLKITEM(wid, "OK", CLK_BTN or CLK_MUSMOVE, False)  // クリックはしない
+//        CLKITEM(wid, "OK", CLK_ACC or CLK_MUSMOVE, False)  // CLK_BTNではダメな場合に
+    endif
+    sleep(0.5)
+  wend
+wend
+----------------------------------------------------------------- ###
+class n12
+  @main = ->
+    while True
+      wid = -1
+      while True
+        if wid != GETID(GET_ACTIVE_WIN)          # アクティブウィンドウが変わった
+          wid = GETID(GET_ACTIVE_WIN)
+          CLKITEM(wid, "OK", CLK_BTN or CLK_MUSMOVE, False)    # クリックはしない
+          # CLKITEM(wid, "OK", CLK_ACC or CLK_MUSMOVE, False)  # CLK_BTNではダメな場合に
+      sleep(0.5)
+
+### -----------------------------------------------------------------
+// 指定画像、ピクセルがあればクリック　　#n13
+// エアロがオンだとCHKIMG,PEEKCOLOR関数は遅いので APIでエアロはオフに
+DEF_DLL DwmEnableComposition(long): long: dwmapi
+if KINDOFOS() <=20 then DwmEnableComposition(0)   //  Vista以上の場合に Windows Aero オフ
+STOPFORM(False)                                  // "再生中...xxxx"ウィンドウは出さない
+MMV(G_SCREEN_W, G_SCREEN_H)                      // カーソルを画面端に（カーソルがソフト描画の場合に退避)
+while True
+    if GETKEYSTATE(VK_ESC) then exit          // ESCキーで終了
+    ifb CHKIMG("check.bmp")                   // 画像があった
+        BTN(LEFT, CLICK, G_IMG_X, G_IMG_Y)    // 左クリック
+        break
+    endif
+    ifb PEEKCOLOR(320, 320) = $00FF00         // 指定ピクセルが緑
+        KBD(VK_SPACE)                         // スペースキー
+        break
+    endif
+    sleep(1)
+wend
+if KINDOFOS() <= 20 then DwmEnableComposition(1)   //  Windows Aero オン
+----------------------------------------------------------------- ###
+class n13
+  @main = ->
+    `DEF_DLL DwmEnableComposition(long): long: dwmapi`   # TODO
+    DwmEnableComposition(0) if (KINDOFOS() <=20)     #  Vista以上の場合に Windows Aero オフ
+    STOPFORM False                                   # "再生中...xxxx"ウィンドウは出さない
+    MMV(G_SCREEN_W, G_SCREEN_H)                      # カーソルを画面端に（カーソルがソフト描画の場合に退避)
+
+    while true
+      exit if GETKEYSTATE(VK_ESC)                    # ESCキーで終了
+      if CHKIMG("check.bmp")                         # 画像があった
+        BTN(LEFT, CLICK, G_IMG_X, G_IMG_Y)           # 左クリック
+        break
+      if PEEKCOLOR(320, 320) == $00FF00              # 指定ピクセルが緑
+        KBD(VK_SPACE)                                # スペースキー
+        break
+      sleep 1 
+
+    DwmEnableComposition(1)  if (KINDOFOS() <=20)    #  Windows Aero オン
+
+### -----------------------------------------------------------------
+// マウスカーソル下のウィンドウのタイトルとクラス名を表示　　#n14
+While True
+    id = GETID(GET_FROMPOINT_WIN)                    // マウスカーソル下のウィンドウ
+    if id = GETID(GET_FUKIDASI_WIN) then Continue    // 吹き出し自体は無視
+    moji = STATUS(id, ST_TITLE) + " , " + STATUS(id, ST_CLASS)
+    Fukidasi(moji, G_MOUSE_X+8, G_MOUSE_Y, 3)
+    Sleep(0.2)
+Wend
+----------------------------------------------------------------- ###
+class n14
+  @main = ->
+    while True
+      id = GETID(GET_FROMPOINT_WIN)                # マウスカーソル下のウィンドウ
+      continue if id == GETID(GET_FUKIDASI_WIN)    # 吹き出し自体は無視
+      moji = "#{STATUS(id, ST_TITLE)} , #{STATUS(id, ST_CLASS)}"
+      Fukidasi(moji, G_MOUSE_X+8, G_MOUSE_Y, 3)
+      Sleep 0.2
+
+### -----------------------------------------------------------------
+// 全ウィンドウのタイトルとクラス名を取得する　　#n15
+n = GETALLWIN()
+print "ウィンドウ数=" + n
+for i=0 to n-1
+    id = ALL_WIN_ID[i]
+    print STATUS(ID, ST_TITLE) + " , " + STATUS(ID, ST_CLASS)
+next
+----------------------------------------------------------------- ###
+class n15
+  @main = ->
+    n = GETALLWIN()
+    print "ウィンドウ数=" + n
+    for i in [0 .. n-1]
+      id = ALL_WIN_ID[i]
+      print "#{STATUS(ID, ST_TITLE)} , #{STATUS(ID, ST_CLASS)}"
+
+### -----------------------------------------------------------------
+// アクティブウィンドウを基準にした任意の座標を調べる　　#n16
+While True
+    x = G_MOUSE_X;  y = G_MOUSE_Y      // マウス位置
+    id = GETID(GET_ACTIVE_WIN)         // アクティブウィンドウ
+    ofx = x - STATUS(id, ST_X)         // 相対位置
+    ofy = y - STATUS(id, ST_Y)
+    moji = "x="+ofx + ", y="+ofy
+    Fukidasi(moji, x, y, 3)
+    Sleep(0.5)
+Wend
+----------------------------------------------------------------- ###
+class n16
+  @main = ->
+    while True
+      x = G_MOUSE_X;  y = G_MOUSE_Y      # マウス位置
+      id = GETID(GET_ACTIVE_WIN)         # アクティブウィンドウ
+      ofx = x - STATUS(id, ST_X)         # 相対位置
+      ofy = y - STATUS(id, ST_Y)
+      moji = "x=#{ofx}, y=#{ofy}"
+      Fukidasi(moji, x, y, 3)
+      Sleep 0.5 
+
+### -----------------------------------------------------------------
+// カーソル位置の色を表示する　　#n17
+While True
+    x = G_MOUSE_X;  y = G_MOUSE_Y
+    c = PeekColor(x, y)
+    Fukidasi("赤="+赤色(c) + ",緑="+緑色(c) + ",青="+青色(c), x, y, 3)
+    Sleep(0.5)
+Wend
+// PeekColorによる色は B,G,R
+function  赤色(c)
+    Result  =  c  and  $FF
+fend
+function 緑色(c)
+    Result  =  (c  and  $FF00)  /  $100
+fend
+function  青色(c)
+    Result  =  (c  and  $FF0000)  /  $10000
+fend
+----------------------------------------------------------------- ###
+class n17
+  @main = ->
+    while True
+      x = G_MOUSE_X;  y = G_MOUSE_Y
+      c = PeekColor(x, y)
+      Fukidasi("赤=#{赤色(c)}, 緑=#{緑色(c)}, 青=#{青色(c)}", x, y, 3)
+      Sleep 0.5
+
+  ### PeekColorによる色は B,G,R ###
+  @赤色 = (c) -> Result  =  c  and  $FF
+  @緑色 = (c) -> Result  =  (c  and  $FF00)  /  $100
+  @青色 = (c) -> Result  =  (c  and  $FF0000)  /  $10000
+
+### -----------------------------------------------------------------
+// スクリーンセーバーの設定を変更する　　#n18
+// 注：XPまで
+Exec("Control Desk.cpl")                        // 画面のプロパティを起動
+id = getid("画面のプロパティ")
+ClkItem(id, "スクリーン セーバー", CLK_TAB)
+ClkItem(id, "伝言板", CLK_LIST)                 // 伝言板を選択し設定する
+ClkItem(id, "設定", CLK_BTN, True, 1)
+SendStr(GETID("伝言板"), "ほにゃらら", 1, True)
+ClkItem(GETID("伝言板"), "OK")
+ClkItem(id, "OK")
+----------------------------------------------------------------- ###
+class n18
+  @main = ->
+    Exec("Control Desk.cpl")                        # 画面のプロパティを起動
+    id = getid("画面のプロパティ")
+    ClkItem(id, "スクリーン セーバー", CLK_TAB)
+    ClkItem(id, "伝言板", CLK_LIST)                 # 伝言板を選択し設定する
+    ClkItem(id, "設定", CLK_BTN, True, 1)
+    SendStr(GETID("伝言板"), "ほにゃらら", 1, True)
+    ClkItem(GETID("伝言板"), "OK")
+    ClkItem(id, "OK")
+
+### -----------------------------------------------------------------
+// レジストリより IEのバージョン取得　　#n19
+ws = CreateOleObj("Wscript.Shell")
+s = ws.RegRead("HKLM\SOFTWARE\Microsoft\Internet Explorer\Version")
+MSGBOX(s)
+----------------------------------------------------------------- ###
+class n19
+  @main = ->
+    ws = CreateOleObj("Wscript.Shell")
+    s = ws.RegRead("HKLM\SOFTWARE\Microsoft\Internet Explorer\Version")
+    MSGBOX(s)
+
+### -----------------------------------------------------------------
+// MSAgent と SpeechEngine の利用　　#n20
+// 注：Windows7 には MSAgentは無い
+キャラ = "Merlin"                    // キャラクタ に Merlin を選択
+obj = CreateOLEObj("Agent.Control.1")
+obj.Connected=True
+ss = GET_WIN_DIR + "\msagent\chars\" + キャラ +".acs"
+obj.Characters.Load(キャラ, ss)
+agt = obj.Characters(キャラ)
+agt.show
+agt.Play("Greet")
+agt.speak("Hello")
+agt.speak("日本語も喋れるかな")
+Sleep(10)
+----------------------------------------------------------------- ###
+class n20
+  @main = ->
+    キャラ = "Merlin"                      # キャラクタ に Merlin を選択
+    obj = CreateOLEObj("Agent.Control.1")
+    obj.Connected = true
+    `ss = GET_WIN_DIR + "\msagent\chars\" + キャラ +".acs"`   # TODO
+    obj.Characters.Load(キャラ, ss)
+    agt = obj.Characters(キャラ)
+    agt.show
+    agt.Play("Greet")
+    agt.speak("Hello")
+    agt.speak("日本語も喋れるかな")
+    Sleep(10)
+
+### -----------------------------------------------------------------
+// クリップボードにコピーされた値を Excelに保存していく　　#n21
+Excel = CreateOLEObj("Excel.Application")
+Excel.Visible = True
+Workbook = Excel.WorkBooks.Add
+y = 1
+x = 1
+SENDSTR(0, "")
+while True
+    sleep(0.2)
+    ss = GETSTR(0)
+    ifb ss <> ""                        // クリップボードにある
+        Excel.ActiveSheet.Cells[y,x].Value = ss
+        SENDSTR(0, "")                  // クリップボードをクリア
+        x = x + 1
+        ifb x < 10                      // 横方向は10(J)まで
+            x = 1
+            y = y + 1
+        endif
+    endif
+wend
+----------------------------------------------------------------- ###
+class n21
+  @main = ->
+    Excel = CreateOLEObj("Excel.Application")
+    Excel.Visible = true
+    Workbook = Excel.WorkBooks.Add
+    y = 1
+    x = 1
+    SENDSTR(0, "")
+
+    while true
+      sleep(0.2)
+      ss = GETSTR(0)
+      if ss != ""                       # クリップボードにある
+
+        `Excel.ActiveSheet.Cells[y,x].Value = ss`  # TODO
+
+        SENDSTR(0, "")                  # クリップボードをクリア
+        x += 1
+        if x < 10                       # 横方向は10(J)まで
+          x = 1
+          y += 1
+
+### -----------------------------------------------------------------
+// メモ帳のボタン・メニュの変更（DLL(API)の呼び出し）　　#n22
+// メモ帳の終了ボタン・メニュを使えなくする、キャプションの変更
+DEF_DLL SetWindowTextA(HWND, string): user32.DLL
+DEF_DLL EnableWindow(HWND, Bool): Bool: user32.DLL
+DEF_DLL EnableMenuItem(HWND, UINT, UINT): DWORD: user32.DLL
+DEF_DLL GetSubMenu(HWND, int): HWND: user32.DLL
+DEF_DLL ModifyMenuA(HWND, Long, Long, Long, Long): Long: user32.DLL
+MF_GRAYED = $1
+MF_BYPOSITION = $400
+SC_CLOSE = $F060
+// 終了は ALT + F4 で
+id = exec("notepad")
+hwnd = GetSubMenu(GetCtlHnd(id, GET_MENU_HND), 0)    // メニュ- > ファイル
+EnableMenuItem(hwnd, 8, MF_BYPOSITION+MF_GRAYED)     // 終了をグレー
+hwnd = GetCtlHnd(id, GET_SYSMENU_HND)                // システムメニュ
+ModifyMenuA(hwnd, SC_CLOSE, MF_GRAYED, 0, 0)         // クローズボタンをグレー
+ClkItem(id, "バージョン情報")
+hwnd = GetCtlHnd(GETID("バージョン情報"), "OK")
+SetWindowTextA(hwnd, "押せまい")                     // OKボタン書換え
+EnableWindow(hwnd, False)
+
+// アクティブウィンドウの左上に時間を表示（デスクトップに文字を直書き）
+DEF_DLL GetDC(hwnd): hwnd: USER32
+DEF_DLL ReleaseDC(hwnd, hwnd): int: USER32
+DEF_DLL TextOutW(hwnd, int, int, wstring, int): Bool: GDI32
+while ! GETKEYSTATE(VK_ESC)          // ESCキーにて終了
+    w = GETID(GET_ACTIVE_WIN)
+    GetTime()
+    s = G_TIME_HH2+":"+G_TIME_NN2+":"+G_TIME_SS2
+    dc = GetDC(0)                    // デスクトップのDC
+    TextOutW(dc, Status(w,ST_X)+2, Status(w,ST_Y)+2, s, Length(s))
+    ReleaseDC(0, DC)
+    Sleep(1)
+wend
+----------------------------------------------------------------- ###
+class n22
+  @main = ->
+    ### TODO ###
+
+### -----------------------------------------------------------------
+// WindowsXP/Windows2000 のデフラグの実行＆シャットダウン　　#n24
+ifb (KINDOFOS()&lt;12) or (KINDOFOS() > 14)
+    MSGBOX("Windows XP or 2000 のみです")
+    Exit
+endif
+dim disk[5] = "(C:)", "(D:)", "STOP_DFRG"        // 調べるディスク名定義
+exec(GET_SYS_DIR+"\mmc.exe dfrg.msc")            // デフラグ起動
+id = getid("ディスク デフラグ")
+dcnt = 0
+While ClkItem(id, disk[dcnt], CLK_SHORT)
+    ClkItem(id, "分析")
+    ifb KINDOFOS() <= 13                         // Windows XP
+        Repeat; sleep(1); Until id <> getid("ディスク デフラグ ツール")
+        bnsekiid = getid("ディスク デフラグ ツール")
+        wks = GetStr(bnsekiid, 1)
+        sai_msg = "最適化してください"
+    else
+        bnsekiid = GetID("分析が完了しました", , -1)      // Windows2000
+        wks = GetStr(bnsekiid, 1, STR_STATIC)
+        sai_msg = "最適化することを推奨"
+    endif
+    ifb Pos(sai_msg, wks) > 0                             // では最適化
+        ClkItem(bnsekiid, "最適化")
+        While True
+            Sleep(2)
+            ifb KINDOFOS() >= 13                          // Windows XP
+                wks = GetStr(getid("ディスク デフラグ ツール"), 1)
+                ifb Pos("最適化が完了しました", wks) > 0 
+                    ClkItem(getid("ディスク デフラグ ツール"), "閉じる")
+                    Break
+                endif
+            else
+                wks = GetStr(id, 1, STR_STATIC)
+                if Pos("一時停止", wks) < 0 then ClkItem(GetID("デフラグ ツール"), "はい")
+                ifb Pos("最適化済", wks) < 0 
+                    ClkItem(GetID("最適化が完了"), "閉じる")
+                    Break
+                endif
+            endif
+        Wend
+    else
+        ClkItem(bnsekiid, "閉じる")            // 最適化必要なし
+    endif
+    dcnt = dcnt + 1                            // 次のディスクへ
+Wend
+POFF(P_POWEROFF or P_FORCE)                    // 電源断
+----------------------------------------------------------------- ###
+class n24
+  @main = ->
+    ### TODO ###
+
+### -----------------------------------------------------------------
+// WMIによるBIOS、マザーボード情報の表示　　#n25
+Locator = CreateOleObj("WbemScripting.SWbemLocator")
+consvr = Locator.ConnectServer()
+biosset = consvr.ExecQuery("Select * From Win32_BIOS")       // BIOS情報
+GETOLEITEM(biosset); wk = ALL_OLE_ITEM[0]
+print wk.Manufacturer
+print wk.Name
+print wk.SerialNumber
+print wk.SMBIOSBIOSVersion
+baseset = consvr.ExecQuery("Select * From Win32_BaseBoard")  // マザーボード情報
+GETOLEITEM(baseset); wk = ALL_OLE_ITEM[0]
+print wk.Manufacturer
+print wk.Product
+print wk.SerialNumber
+print wk.Version
+----------------------------------------------------------------- ###
+class n25
+  @main = ->
+    Locator = CreateOleObj("WbemScripting.SWbemLocator")
+    consvr = Locator.ConnectServer()
+    biosset = consvr.ExecQuery("Select * From Win32_BIOS")       # BIOS情報
+    GETOLEITEM(biosset); wk = ALL_OLE_ITEM[0]
+    print wk.Manufacturer
+    print wk.Name
+    print wk.SerialNumber
+    print wk.SMBIOSBIOSVersion
+    baseset = consvr.ExecQuery("Select * From Win32_BaseBoard")  # マザーボード情報
+    GETOLEITEM(baseset); wk = ALL_OLE_ITEM[0]
+    print wk.Manufacturer
+    print wk.Product
+    print wk.SerialNumber
+    print wk.Version
+
+### -----------------------------------------------------------------
+// IEにてActiveX警告のダイアログを自動で閉じる　　#n26
+//  このスクリプトをスケジュールの '指定Windowが現れた時' に登録する
+//  Title=Internet Explorer    Class=#32770    にて登録
+STOPFORM(False)                  // 再生ボタンは出さない
+id = GETID("Microsoft Internet Explorer", "#32770")
+wks = getstr(id, 2, STR_STATIC)
+msg = "現在のセキュリティの設定では、このページの ActiveX コントロールは実行できません"
+if Copy(wks, 1, Length(msg)) = msg then ClkItem(id, "OK", Clk_Btn)
+----------------------------------------------------------------- ###
+class n26
+  @main = ->
+    STOPFORM(False)                  # 再生ボタンは出さない
+    id = GETID("Microsoft Internet Explorer", "#32770")
+    wks = getstr(id, 2, STR_STATIC)
+    msg = "現在のセキュリティの設定では、このページの ActiveX コントロールは実行できません"
+    ClkItem(id, "OK", Clk_Btn) if Copy(wks, 1, Length(msg)) == msg
+
+### -----------------------------------------------------------------
+// 掲示板のスレをテキストファイルとして保存する　　#n27
+fp = FOPEN("掲示板.Log", F_WRITE)
+IE = CreateOLEObj("InternetExplorer.Application")
+IE.Visible = True
+IE.Navigate("http://www3.bigcosmic.com/board/s/board.cgi?id=umiumi")
+While True
+    sleep(1)
+    Repeat
+        sleep(0.1)
+    Until (! IE.busy) and (IE.readyState=4)       // 接続表示待ち
+    p = -1
+    atag = IE.document.body.all.tags("A")
+    for i = 0 to atag.Length - 1                  // 次ページがあるか確認
+        ifb atag.item[i].innerText = "[次のページ]"
+            p = i
+            break
+        endif
+    next
+    wks = IE.document.body.innerText
+    if p > 0 then atag.item[p].click()                    // 次ページ クリック
+    wks = Replace(wks, "[HOME] [削除] [検索] [過去ログ] [管理人用]", "")
+    wks = Replace(wks, "お名前&lt;#CR&gt;Email&lt;#CR&gt;URL&lt;#CR&gt;題  名 &lt;#CR&gt;本  文", "")
+    FPUT(fp, wks)                                // 要らない部分を削除して保存
+    if p < 0 then break                          // 終了
+Wend
+FCLOSE(fp)
+IE.Quit
+----------------------------------------------------------------- ###
+class n27
+  @main = ->
+    fp = FOPEN("掲示板.Log", F_WRITE)
+    IE = CreateOLEObj("InternetExplorer.Application")
+    IE.Visible = True
+    IE.Navigate("http://www3.bigcosmic.com/board/s/board.cgi?id=umiumi")
+    while True
+      sleep(1)
+      loop
+        sleep(0.1)
+        break if  (! IE.busy) and (IE.readyState=4)       # 接続表示待ち
+      p = -1
+      atag = IE.document.body.all.tags("A")
+      for i in  [0 ... atag.Length - 1]                  # 次ページがあるか確認
+        if atag.item[i].innerText = "[次のページ]"
+          p = i
+          break
+      wks = IE.document.body.innerText
+      atag.item[p].click() if p > 0                # 次ページ クリック
+      wks = Replace(wks, "[HOME] [削除] [検索] [過去ログ] [管理人用]", "")
+      wks = Replace(wks, "お名前&lt;#CR&gt;Email&lt;#CR&gt;URL&lt;#CR&gt;題  名 &lt;#CR&gt;本  文", "")
+      FPUT(fp, wks)                                # 要らない部分を削除して保存
+      break if p < 0                               # 終了
+
+    FCLOSE(fp)
+    IE.Quit
+
+### -----------------------------------------------------------------
+// デスクトップ、タスクバー、トレイの情報を取得　　#n28
+// デスクトップの情報を取得
+for i = 0 to GETITEM(GETID("Program Manager","Progman"), ITM_ACCCLK)-1  // 32bit OS
+    print ALL_ITEM_LIST[i]
+next
+for i = 0 to GETITEM(GETID("","WorkerW"), ITM_ACCCLK)-1           // Windows7 64bit
+    print ALL_ITEM_LIST[i]
+next
+// タスクバー、トレイの情報を取得
+for i = 0 to GETITEM(GETID("","Shell_TrayWnd"), ITM_ACCCLK)-1
+    print ALL_ITEM_LIST[i]
+next
+----------------------------------------------------------------- ###
+class n28
+  @main = ->
+    print ALL_ITEM_LIST[i]  for i in [0 .. GETITEM(GETID("Program Manager","Progman"), ITM_ACCCLK)-1]  # 32bit OS      
+    print ALL_ITEM_LIST[i]  for i in [0 .. GETITEM(GETID("","WorkerW"), ITM_ACCCLK)-1]           # Windows7 64bit
+    ### タスクバー、トレイの情報を取得 ###
+    print ALL_ITEM_LIST[i]  for i in [0 .. GETITEM(GETID("","Shell_TrayWnd"), ITM_ACCCLK)-1]
+
+### -----------------------------------------------------------------
+// タスクトレイの '音量' をクリック　　#n29
+// 環境により "音量" もしくは "Volume
+ifb ! CLKITEM(GETID("","Shell_TrayWnd"), "音量", CLK_TOOLBAR)
+    ifb ! CLKITEM(GETID("","Shell_TrayWnd"), "Volume", CLK_TOOLBAR)
+        CLKITEM(GETID("","Shell_TrayWnd"), "スピーカー", CLK_ACC or CLK_SHORT) // Windows7
+    endif
+endif
+----------------------------------------------------------------- ###
+class n29
+  @main = ->
+    if ! CLKITEM(GETID("","Shell_TrayWnd"), "音量", CLK_TOOLBAR)
+      if ! CLKITEM(GETID("","Shell_TrayWnd"), "Volume", CLK_TOOLBAR)
+        CLKITEM(GETID("","Shell_TrayWnd"), "スピーカー", CLK_ACC or CLK_SHORT) # Windows7
+
+### -----------------------------------------------------------------
+// マウスカーソル下の文字と位置を取得、Shiftキーによりクリップボードへコピー　　#n30
+While True
+    x = G_MOUSE_X;  y = G_MOUSE_Y                  // マウス位置
+    id = GETID(GET_FROMPOINT_WIN)                  // アクティブウィンドウ
+    if id = GETID(GET_FUKIDASI_WIN) then Continue  // 吹き出し自体は無視
+    ofx = x - STATUS(id, ST_CLX)                   // 相対位置
+    ofy = y - STATUS(id, ST_CLY)
+    wks = PosACC(id, ofx, ofy, ACC_BACK)
+    wks = wks + "<#cr>" + "x="+ofx+", y="+ofy
+    Fukidasi(wks, x+10, y+10, 3)
+    if GetKeyState(VK_SHIFT) then SendStr(0, wks)  // クリップボードへ
+    Sleep(0.5)
+Wend
+----------------------------------------------------------------- ###
+class n30
+  @main = ->
+    while True
+      x = G_MOUSE_X;  y = G_MOUSE_Y                  # マウス位置
+      id = GETID(GET_FROMPOINT_WIN)                  # アクティブウィンドウ
+      continue if id = GETID(GET_FUKIDASI_WIN)       # 吹き出し自体は無視
+
+      ofx = x - STATUS(id, ST_CLX)                   # 相対位置
+      ofy = y - STATUS(id, ST_CLY)
+      wks = PosACC(id, ofx, ofy, ACC_BACK)
+      wks = wks + "<#cr>" + "x="+ofx+", y="+ofy
+      Fukidasi(wks, x+10, y+10, 3)
+
+      SendStr(0, wks)  if GetKeyState(VK_SHIFT)      # クリップボードへ
+      Sleep(0.5)
+
+### -----------------------------------------------------------------
+// マウスカーソル下の文章を読み上げる　　#n31
+sv_s = ""
+While True
+    wks = PosACC(0, G_MOUSE_X, G_MOUSE_Y)    // マウスカーソル下の文章拾得
+    ifb sv_s <> wks
+        sv_s = wks
+        Speak(wks, True, True)    // 読み上げ
+    endif
+    Sleep(0.5)
+Wend
+----------------------------------------------------------------- ###
+class n31
+  @main = ->
+    sv_s = ""
+    while True
+      wks = PosACC(0, G_MOUSE_X, G_MOUSE_Y)    # マウスカーソル下の文章拾得
+      if sv_s != wks
+        sv_s = wks
+        Speak(wks, True, True)    # 読み上げ
+      Sleep(0.5)
+
+### -----------------------------------------------------------------
+// 音声認識によるアプリの操作　　#n32
+// アクティブウィンドウのクリック可能なものを拾得、それを単語登録し使用
+// 認識可能な単語は吹き出しにて表示
+// コマンド発声前にShiftキーを叩いておくとチェックボックス等でOFF動作
+id = -1
+dim 単語登録[100]
+While True
+  ifb id <> GETID(GET_ACTIVE_WIN)  // アクティブウィンドウが変更されたか
+      id = GETID(GET_ACTIVE_WIN)
+      num = GETITEM(id, ITM_BTN+ITM_LIST+ITM_TAB+ITM_MENU+ITM_LSTVEW+ITM_TREEVEW+ITM_TOOLBAR,-1,0,True)  // クリック可能なものを全て拾う
+      if num > resize(単語登録) then num = resize(単語登録)   // 数制限
+      ifb num = 0
+          Sleep(0.2);  Continue
+      endif
+      表示 = ""
+      SETCLEAR(単語登録, "")
+      for i = 0 to num-1
+          単語登録[i] = 記号削除(ALL_ITEM_LIST[i])  // 邪魔な文字は削除
+          if 単語登録[i] <> "" then 表示 = 表示 + 単語登録[i] + "<#CR>"
+      next
+      RECOSTATE(True, 単語登録)    // 単語登録、実行
+      Fukidasi(表示, 0, 0, , , , , ,100)
+  endif
+  拾得音声 = DICTATE(False)        // 拾得
+  ifb 拾得音声 <> ""               // 音声入力あった
+      Fukidasi()
+      print 拾得音声
+      for i = 0 to num-1
+          ifb 拾得音声 = 単語登録[i]
+              chk_flg = ! GETKEYSTATE(VK_SHIFT)          // Shiftキーが押されてた時は Off動作
+              CLKITEM(id, ALL_ITEM_LIST[i], 0, chk_flg)  // コマンド実行
+              break
+          endif
+      next
+      id = -1
+  else
+      if GETKEYSTATE(VK_LBUTTON) then id = -1  // ボタン操作があった時も更新
+  endif
+  Sleep(0.2)
+Wend
+
+// 制御コードなどの記号があるとエラーになるのでゴミ文字削除
+Function 記号削除(ss)
+  p = Pos("\", ss)
+  if p > 0 then ss = Copy(ss, p+1, 999)
+  ifb Pos("\", ss) > 0
+      Result="";  Exit    // 階層化されている物まで拾うと数が多すぎになるので捨てる
+  endif
+  p = Pos("(", ss, -1)
+  if p > 0 then ss = Copy(ss, 1, p-1)  // ( 以降は消す
+  for i = 1 to Length(ss)
+      mcd = ASC(Copy(ss,i,1))          // 英数字のチェック
+      ifb mcd < $80
+          if (mcd&lt;$30) or (mcd&gt;$7A) or ((mcd&gt;=$3A)and(mcd&lt;=$40)) or ((mcd&gt;=$5B)and(mcd&lt;=$60)) then ss=Copy(ss,1,i-1)+" "+Copy(ss,i+1,999)
+      endif
+  next
+  Result = Replace(ss, " ", "")
+Fend
+----------------------------------------------------------------- ###
+class n32
+  @main = ->
+    ### TODO ###
+
+### -----------------------------------------------------------------
+// Internet Explorer 上での文字設定、ボタンのクリック　　#n33
+// エディトボックス、ボタンはHTMLソースの'NAME='や'VALUE=' から確認
+ie = CreateOLEObj("InternetExplorer.Application")
+ie.Visible = True
+ie.Navigate("http://www3.bigcosmic.com/board/s/board.cgi?id=umiumi")  // 掲示板
+while True                                              // 接続表示待ち
+    if (! ie.busy) and (ie.readyState=4) then Break
+    sleep(0.1)
+wend
+IESETDATA(ie, "題名カキカキ", "sub")      // タイトル書込み
+IESETDATA(ie, True, "color", "#aa33aa")   // 文字色=紫
+----------------------------------------------------------------- ###
+class n33
+  @main = ->
+    ie = CreateOLEObj("InternetExplorer.Application")
+    ie.Visible = True
+    ie.Navigate("http://www3.bigcosmic.com/board/s/board.cgi?id=umiumi")  # 掲示板
+    while True                                                            # 接続表示待ち
+      break if (! ie.busy) and (ie.readyState=4)
+      sleep 0.1
+    IESETDATA(ie, "題名カキカキ", "sub")      # タイトル書込み
+    IESETDATA(ie, True, "color", "#aa33aa")   # 文字色=紫
+
+### -----------------------------------------------------------------
+// IE にてGoogleを表示、日本語ページより検索 （RecIEにより生成されたもの）　　#n34
+IE = CreateOLEObj("InternetExplorer.Application")
+IE.Visible = True
+IE.Navigate("http://www.google.co.jp/")
+BusyWait(IE)
+IESetData(IE,"検索文字","q")      // TEXT
+IESetData(IE,True,"btnG")         // SUBMIT Google 検索
+BusyWait(IE)
+IELink(IE,"日本語のページを検索")
+BusyWait(IE)
+// IE.Quit // IE終了
+//------
+Procedure BusyWait(ie)
+  Sleep(0.5)  // Wait
+  Const TIME_OUT = 90
+  tm = Gettime()
+  repeat
+    Sleep(0.2)
+    ifb Gettime() - tm > TIME_OUT
+      MsgBox("Time Out:BusyWait")
+      ExitExit
+    endif
+  until (! ie.busy) and (ie.readyState=4)
+  Sleep(0.5)
+Fend
+----------------------------------------------------------------- ###
+class n34
+  @main = ->
+    IE = CreateOLEObj("InternetExplorer.Application")
+    IE.Visible = True
+    IE.Navigate("http://www.google.co.jp/")
+    BusyWait(IE)
+    IESetData(IE,"検索文字","q")      # TEXT
+    IESetData(IE,True,"btnG")         # SUBMIT Google 検索
+    BusyWait(IE)
+    IELink(IE,"日本語のページを検索")
+    BusyWait(IE)
+    ### IE.Quit // IE終了  ###
+
+    ### ------ ###
+    BusyWait = (ie) ->
+      Sleep(0.5)  # Wait
+      `Const TIME_OUT = 90`  # TODO
+      tm = Gettime()
+      loop
+        Sleep 0.2
+        if Gettime() - tm > TIME_OUT
+          MsgBox("Time Out:BusyWait")
+          ExitExit
+        break if (! ie.busy) and (ie.readyState=4)
+      Sleep 0.5
+
+### -----------------------------------------------------------------
+// Firefox にてGoogleを表示、日本語ページより検索　ACC(アクセシビリティインターフェース)方式　　#n36
+id = GETID("Mozilla Firefox", "MozillaWindowClass")
+CTRLWIN(id, ACTIVATE)
+SENDSTR(id, "http://www.google.co.jp/", 1, True, True)    // URL
+SCKEY(id, VK_RETURN)
+表示完了待ち(id, "Google 検索")
+SENDSTR(id, "検索文字", 3, True, True)         // 検索文字
+ifb GETSTR(id, 3, STR_ACC_EDIT) = ""
+    SENDSTR(id, "検索文字", 4, True, True)     // 3ではなく4の時
+endif
+CLKITEM(id, "Google 検索", CLK_ACC)            // 検索ボタン
+表示完了待ち(id, "すべて")
+CLKITEM(id, "日本語のページを検索", CLK_ACC)
+
+// 指定アイテム/文字が確認できるまで待つ
+Procedure 表示完了待ち(id, item)
+  While True
+    Sleep(0.4)
+    for n = 0 to GETITEM(id, ITM_ACCCLK or ITM_ACCTXT)-1
+       if ALL_ITEM_LIST[n] = item then Exit
+    next
+  wend
+Fend
+----------------------------------------------------------------- ###
+class n36
+  @main = ->
+    id = GETID("Mozilla Firefox", "MozillaWindowClass")
+    CTRLWIN(id, ACTIVATE)
+    SENDSTR(id, "http://www.google.co.jp/", 1, True, True)    # URL
+    SCKEY(id, VK_RETURN)
+    表示完了待ち(id, "Google 検索")
+    SENDSTR(id, "検索文字", 3, True, True)         # 検索文字
+    if GETSTR(id, 3, STR_ACC_EDIT) is ""
+      SENDSTR(id, "検索文字", 4, True, True)       # 3ではなく4の時
+    CLKITEM(id, "Google 検索", CLK_ACC)            # 検索ボタン
+    表示完了待ち(id, "すべて")
+    CLKITEM(id, "日本語のページを検索", CLK_ACC)
+
+    ### 指定アイテム/文字が確認できるまで待つ ###
+    表示完了待ち = (id, item) ->
+      while True
+        Sleep 0.4
+        for n in [0 .. GETITEM(id, ITM_ACCCLK or ITM_ACCTXT)-1]
+          Exit if ALL_ITEM_LIST[n] is item
+
+### -----------------------------------------------------------------
+// Google Chrome にてGoogleを表示、日本語ページより検索（ACC方式）　　#n37
+// 必:起動オプション(accessibilityをOnにする)　"--force-renderer-accessibility"
+path = "C:\xxxx\Application\chrome.exe"
+id = Exec(path + " --force-renderer-accessibility --process-per-tab --new-window http://www.google.co.jp/")
+表示完了待ち(id, "Google 検索")
+SENDSTR(id, "検索文字", 2, True, True)              // 検索文字
+sleep(1)
+CLKITEM(id, "Google 検索", CLK_ACC or CLK_LEFTCLK)  // 検索ボタン
+表示完了待ち(id, "すべて")
+CLKITEM(id, "日本語のページを検索", CLK_ACC)
+
+// 指定アイテム/文字が確認できるまで待つ
+Procedure 表示完了待ち(id, item)
+  While True
+    Sleep(0.4)
+    for n = 0 to GETITEM(id, ITM_ACCCLK or ITM_ACCTXT)-1
+       if ALL_ITEM_LIST[n] = item then Exit
+    next
+  wend
+Fend
+----------------------------------------------------------------- ###
+class n37
+  @main = ->
+    path = "C:\xxxx\Application\chrome.exe"
+    id = Exec(path + " --force-renderer-accessibility --process-per-tab --new-window http://www.google.co.jp/")
+    表示完了待ち(id, "Google 検索")
+    SENDSTR(id, "検索文字", 2, True, True)              # 検索文字
+    sleep(1)
+    CLKITEM(id, "Google 検索", CLK_ACC or CLK_LEFTCLK)  # 検索ボタン
+    表示完了待ち(id, "すべて")
+    CLKITEM(id, "日本語のページを検索", CLK_ACC)
+
+    ### 指定アイテム/文字が確認できるまで待つ ###
+    表示完了待ち = (id, item) ->
+      while True
+        Sleep 0.4
+        for n in [0 .. GETITEM(id, ITM_ACCCLK or ITM_ACCTXT)-1]
+         Exit if ALL_ITEM_LIST[n] is item
+
+### -----------------------------------------------------------------
+// Opera にてGoogleを表示、日本語ページより検索（ACC方式）　　#n38
+id = Exec("C:\Program Files\Opera\opera.exe")
+SENDSTR(id, "http://www.google.co.jp/", 1, True, True)
+SCKEY(id, VK_RETURN)
+表示完了待ち(id, "Google 検索")
+SENDSTR(id, "検索文字", 3, True, True)                // 検索文字
+CLKITEM(id, "Google 検索", CLK_ACC or CLK_LEFTCLK)    // 検索ボタン(必CLK_LEFTCLK)
+表示完了待ち(id, "すべて")
+CLKITEM(id, "日本語のページを検索", CLK_ACC or CLK_LEFTCLK)
+
+// 指定アイテム/文字が確認できるまで待つ
+Procedure 表示完了待ち(id, item)
+  While True
+    Sleep(0.4)
+    for n = 0 to GETITEM(id, ITM_ACCCLK or ITM_ACCTXT)-1
+       if ALL_ITEM_LIST[n] = item then Exit
+    next
+  wend
+Fend
+----------------------------------------------------------------- ###
+class n38
+  @main = ->
+    id = Exec("C:\Program Files\Opera\opera.exe")
+    SENDSTR(id, "http://www.google.co.jp/", 1, True, True)
+    SCKEY(id, VK_RETURN)
+    表示完了待ち(id, "Google 検索")
+    SENDSTR(id, "検索文字", 3, True, True)                # 検索文字
+    CLKITEM(id, "Google 検索", CLK_ACC or CLK_LEFTCLK)    # 検索ボタン(必CLK_LEFTCLK)
+    表示完了待ち(id, "すべて")
+    CLKITEM(id, "日本語のページを検索", CLK_ACC or CLK_LEFTCLK)
+
+    ### 指定アイテム/文字が確認できるまで待つ ###
+    表示完了待ち = (id, item) ->
+      while True
+        Sleep 0.4
+        for n in [0 .. GETITEM(id, ITM_ACCCLK or ITM_ACCTXT)-1]
+          Exit if ALL_ITEM_LIST[n] is item
+
+### -----------------------------------------------------------------
+// Javaのデモアプリ FileChooserDemo を起動、操作（ACC方式）　　#n39
+デモ名 = "FileChooserDemo"
+パス = "C:\Program Files\Java\demo\jfc\"
+DosCmd("java -jar <#DBL>"+パス+デモ名+"\"+デモ名+".jar<#DBL>", True)
+id = GETID(デモ名, "SunAwtFrame", -1)
+if ChkBtn(id, "Open", 1, True) then print "Open"    // Dialog Tyep チェック
+if ChkBtn(id, "Save", 1, True) then print "Save"
+Sleep(2)
+ClkItem(id, "Custom", CLK_ACC, True)        // Custom クリック
+SendStr(id, "書き込み", 1, True, True)      // 文字書き込み
+ClkItem(id, "Metal", CLK_ACC, True)         // Look and Feel
+----------------------------------------------------------------- ###
+class n39
+  @main = ->
+    デモ名 = "FileChooserDemo"
+    `パス = "C:\Program Files\Java\demo\jfc\"`                              # TODO
+    `DosCmd("java -jar <#DBL>"+パス+デモ名+"\"+デモ名+".jar<#DBL>", True)`  # TODO
+    id = GETID(デモ名, "SunAwtFrame", -1)
+    print "Open"   if ChkBtn(id, "Open", 1, True)    # Dialog Tyep チェック
+    print "Save"   if ChkBtn(id, "Save", 1, True)
+
+    Sleep 2
+    ClkItem(id, "Custom", CLK_ACC, True)        # Custom クリック
+    SendStr(id, "書き込み", 1, True, True)      # 文字書き込み
+    ClkItem(id, "Metal", CLK_ACC, True)         # Look and Feel
+
+### -----------------------------------------------------------------
+// メールからスクリプトを指定して実行する（basp21.dll を使用）　　#n40
+// サブジェクトに UWSC xxxx.uws と書かれていればその xxxx.uws を実行
+// スケジュールのタイマーにて一定間隔にて起動するよう指定しておく
+bobj = CreateOLEObj("basp21")
+output = bobj.RcvMail(サーバ, ユーザID, パスワード, "LIST", GET_CUR_DIR)
+for i = Length(output)-1 to 0 step -1
+    p = Pos("UWSC ", output[i])
+    if p = 0 then continue
+    wks = Trim(Copy(output[i], p+5, 9999))
+    p = Pos(".uws", wks)
+    if p = 0 then continue
+    filnm = Copy(wks, 1, p+3)
+    wk = bobj.RcvMail(サーバ, ユーザID, パスワード, "DELE "+(i+1), GET_CUR_DIR)   // 指定メール削除
+    exec("uwsc.exe " + filnm)        // xxxx.uwsの実行
+    break
+next
+----------------------------------------------------------------- ###
+class n40
+  @main = ->
+    bobj = CreateOLEObj("basp21")
+    output = bobj.RcvMail(サーバ, ユーザID, パスワード, "LIST", GET_CUR_DIR)
+    for i in[ Length(output)-1 .. 0] by -1
+      p = Pos("UWSC ", output[i])
+      continue if p is 0
+
+      wks = Trim(Copy(output[i], p+5, 9999))
+      p = Pos(".uws", wks)
+      continue if p is 0
+
+      filnm = Copy(wks, 1, p+3)
+      wk = bobj.RcvMail(サーバ, ユーザID, パスワード, "DELE "+(i+1), GET_CUR_DIR)   # 指定メール削除
+      exec("uwsc.exe " + filnm)        # xxxx.uwsの実行
+      break
+
+### -----------------------------------------------------------------
+// VBScript、JScriptを呼び出す（足し算をする）　　#n41
+scpt = CreateOleObj("ScriptControl")
+pls1 = 5
+pls2 = 9
+// VBScriptを使う
+scpt.language="VBScript"
+src = "Function tasizan(a, b): tasizan = a + b: End Function"
+scpt.AddCode(src)                               // ソースを登録
+answer = scpt.Run("tasizan", pls1, pls2)        // 実行
+print pls1 + " + " + pls2 + " = " + answer + "です（VBScript）"
+
+// JScriptを使う
+scpt.language="JScript"
+src = "function tasizan(a, b){ return a + b; }"
+scpt.AddCode(src)                               // ソースを登録
+answer = scpt.Run("tasizan", pls1, pls2)        // 実行
+print pls1 + " + " + pls2 + " = " + answer + "です（JScript）"
+----------------------------------------------------------------- ###
+class n41
+  @main = ->
+    ### TODO ###
+
+### -----------------------------------------------------------------
+// スレッドを使い吹出しを複数を出す　　#n42
+PUBLIC clear_fuki = -1      // 消去する識別No.を指定する
+FUKIDASI("main")
+thread create_fuki(1, "aaaa", 100, 100)        // スレッドにて吹出し生成
+thread create_fuki(2, "bbbb", 200, 200)
+thread create_fuki(3, "cccc", 300, 300)
+sleep(3)
+clear_fuki = 2      // bbbbbを消去
+sleep(5)
+
+// 吹出し生成 (pno=識別No.、msg=表示メッセージ、x,y=位置)
+procedure create_fuki(pno, msg, x, y)
+  FUKIDASI(msg, x, y)
+  while clear_fuki <> pno;  sleep(0.1);  wend    // 消去指定されるまで表示
+Fend
+----------------------------------------------------------------- ###
+class n42
+  @main = ->
+    `PUBLIC clear_fuki = -1      // 消去する識別No.を指定する`  # TODO
+    FUKIDASI("main")
+    thread create_fuki(1, "aaaa", 100, 100)        # スレッドにて吹出し生成
+    thread create_fuki(2, "bbbb", 200, 200)
+    thread create_fuki(3, "cccc", 300, 300)
+    sleep 3
+
+    clear_fuki = 2                                 # bbbbbを消去
+    sleep 5
+
+  ### 吹出し生成 (pno=識別No.、msg=表示メッセージ、x,y = 位置) ###
+  @create_fuki = (pno, msg, x, y) ->
+    FUKIDASI(msg, x, y)
+    sleep (0.1)  while clear_fuki != pno         # 消去指定されるまで表示
+
+### -----------------------------------------------------------------
+// Yahoo!検索Webサービスの利用　　#n43
+url = "http://api.search.yahoo.co.jp/WebSearchService/V1/webSearch?appid=YahooDemo&amp;"
+key = "高校野球"            // 検索文字
+xml = GetRXML(url + "query=" + Encode(Encode(key, CODE_UTF8), CODE_URL))
+wkp = xml.getElementsByTagName("Result")
+for i = 0 to wkp.Length-1
+    print wkp.item[i].childNodes.item[0].text    // Title
+    print wkp.item[i].childNodes.item[1].text    // Summary
+    print wkp.item[i].childNodes.item[2].text    // Url
+    print
+next
+
+// ResponseXMLの取得
+Function GetRXML(url)
+  oHttp = CreateOLEObj("MSXML2.XMLHTTP")
+  oHttp.Open("GET", url, 0)
+  oHttp.Send
+  Result = oHttp.responseXML
+Fend
+----------------------------------------------------------------- ###
+class n43
+  @main = ->
+
+
+### -----------------------------------------------------------------
+// Vista/7 ガジェット 時計の設定変更　　#n44
+id = GETID("時計", "BasicWindow")
+MOUSEORG(id, 2);  MMV(0, 0)              // メニューを有効にする為の処理
+ifb ! CLKITEM(id, "設定", CLK_ACC)       // Vista
+    CLKITEM(id, "オプション", CLK_ACC)   // Windows7
+endif
+MOUSEORG(id, 0)
+clockid = GETID("", "SideBar_SettingsWindow")
+CLKITEM(clockid, "次へ", CLK_ACC or CLK_BACK, False)    // フォーカス移す(JavaScriptの画像ボタン)
+KBD(VK_SPACE)      // 時計を一つ変更
+CLKITEM(clockid, "秒針を表示する", CLK_ACC)
+CLKITEM(clockid, "OK", CLK_ACC)
+----------------------------------------------------------------- ###
+class n44
+  @main = ->
+    id = GETID("時計", "BasicWindow")
+    MOUSEORG(id, 2);  MMV(0, 0)                             # メニューを有効にする為の処理
+    unless ! CLKITEM(id, "設定", CLK_ACC)                   # Vista
+      CLKITEM(id, "オプション", CLK_ACC)                    # Windows7
+    MOUSEORG(id, 0)
+    clockid = GETID("", "SideBar_SettingsWindow")
+    `CLKITEM(clockid, "次へ", CLK_ACC or CLK_BACK, False)`  # フォーカス移す(JavaScriptの画像ボタン)`  # TODO
+    KBD(VK_SPACE)                                           # 時計を一つ変更
+    CLKITEM(clockid, "秒針を表示する", CLK_ACC)
+    CLKITEM(clockid, "OK", CLK_ACC)
+
+### -----------------------------------------------------------------
+// キーボードからのキーを一文字づつずらす　　#n45
+for k = VK_A to VK_Y
+    SETHOTKEY(k, ,"fuckey")     // AからYまでキー登録
+next
+Sleep(100)
+for k = VK_A to VK_Y
+    SETHOTKEY(k)               // 解除
+next
+
+// 一文字ずらす
+Procedure fuckey()
+  KBD(HOTKEY_VK+1)
+Fend
+----------------------------------------------------------------- ###
+class n45
+  @main = ->
+    # SETHOTKEY(k, ,"fuckey") for k in [VK_A .. VK_Y]    # AからYまでキー登録
+    for k in [VK_A .. VK_Y]
+      `SETHOTKEY(k, ,"fuckey")`              # TODO
+    Sleep 100
+    SETHOTKEY(k)  for k in [VK_A .. VK_Y]    # 解除
+
+  # 一文字ずらす
+  @fuckey = -> KBD(HOTKEY_VK+1)
+
+### -----------------------------------------------------------------
+// CLK_ACC指定時の位置、順番を確認する　　#n46
+// Yahoo!にて "地図"の 位置、順番を確認
+id = GETID("Yahoo! JAPAN")
+for i = 1 to 99
+    if ! ClkItem(id, "地図", CLK_ACC or CLK_MUSMOVE, False, i) then break
+    Fukidasi(i, G_MOUSE_X, G_MOUSE_Y+20)
+    Sleep(1)
+next
+----------------------------------------------------------------- ###
+class n46
+  @main = ->
+    id = GETID("Yahoo! JAPAN")
+    for i in [1 .. 99]
+      `if ! ClkItem(id, "地図", CLK_ACC or CLK_MUSMOVE, False, i) then break`  # TODO        
+      Fukidasi(i, G_MOUSE_X, G_MOUSE_Y+20)
+      Sleep 1
+
+### -----------------------------------------------------------------
+// デスクトップの情報を取得しポップアップメニュにする　　#n47
+ifb KINDOFOS(True)
+    id = GETID("","WorkerW")                // Windows7 64bit
+else
+    id = GETID("Program Manager","Progman")
+endif
+for i = 0 to GETITEM(id, ITM_ACCCLK)-1
+    if Pos("ボタンの分割", ALL_ITEM_LIST[i])=1 then ALL_ITEM_LIST[i]=""   // 要らない項目
+next
+x = POPUPMENU(ALL_ITEM_LIST)
+CLKITEM(id, ALL_ITEM_LIST[x], CLK_ACC)
+----------------------------------------------------------------- ###
+class n47
+  @main = ->
+    if KINDOFOS(True)
+      id = GETID("","WorkerW")                   # Windows7 64bit
+    else 
+      id = GETID("Program Manager","Progman")
+
+    for i in [0 .. GETITEM(id, ITM_ACCCLK) - 1]
+      if Pos("ボタンの分割", ALL_ITEM_LIST[i]) is 1 then ALL_ITEM_LIST[i] = ""   # 要らない項目
+
+    x = POPUPMENU(ALL_ITEM_LIST)
+    CLKITEM(id, ALL_ITEM_LIST[x], CLK_ACC)
+
+### -----------------------------------------------------------------
+// iTunesを起動しラジオの選択　　#n48
+// ラジオ -> "80's Flashback" -> "ABF ANALOG"
+itunes = CreateOLEObj("iTunes.Application")
+id = GETID("iTunes", "iTunes", -1)         // ACCによる操作
+ClkItem(id, "ラジオ", CLK_ACC)
+ClkItem(id, "80's Flashback", CLK_ACC or CLK_SHORT)
+while ! ClkItem(id, "ABF ANALOG", CLK_ACC or CLK_SHORT)
+    Sleep(1)                               // クリックが確認できるまで
+wend
+----------------------------------------------------------------- ###
+class n48
+  @main = ->
+    itunes = CreateOLEObj("iTunes.Application")
+    id = GETID("iTunes", "iTunes", -1)         # ACCによる操作
+    ClkItem(id, "ラジオ", CLK_ACC)
+    ClkItem(id, "80's Flashback", CLK_ACC or CLK_SHORT)
+    while ! ClkItem(id, "ABF ANALOG", CLK_ACC or CLK_SHORT)
+      Sleep 1                                  # クリックが確認できるまで
+
+### -----------------------------------------------------------------
+// タスクマネージャよりプロセス情報を読み取り、メモリ使用量でソート　　#n49
+id = Exec("taskmgr.exe")
+id = GETID("タスク マネージャ", "#32770", -1)
+ClkItem(id, "プロセス", CLK_TAB)
+GETITEM(id, ITM_LSTVEW, 1, 0)       // イメージ名
+imagenm = Slice(ALL_ITEM_LIST)      // 配列コピー
+GETITEM(id, ITM_LSTVEW, 1, 4)       // 消費メモリ
+memory = Slice(ALL_ITEM_LIST)
+for n = 0 to Length(imagenm)-1
+    memory[n] = Val(Token(" ", memory[n]))  // 数値部のみ切取り
+next
+QSort(memory, 0, imagenm)
+for n = 0 to Length(imagenm)-1
+    print imagenm[n] +"<#TAB>"+ memory[n]
+next
+----------------------------------------------------------------- ###
+class n49
+  @main = ->
+    id = Exec("taskmgr.exe")
+    id = GETID("タスク マネージャ", "#32770", -1)
+    ClkItem(id, "プロセス", CLK_TAB)
+    GETITEM(id, ITM_LSTVEW, 1, 0)             # イメージ名
+    imagenm = Slice(ALL_ITEM_LIST)            # 配列コピー
+    GETITEM(id, ITM_LSTVEW, 1, 4)             # 消費メモリ
+    memory = Slice(ALL_ITEM_LIST)
+    for n in [0 .. Length(imagenm) - 1]
+      memory[n] = Val(Token(" ", memory[n]))  # 数値部のみ切取り
+
+    QSort(memory, 0, imagenm)    
+    print "#{imagenm[n]}<#TAB>#{memory[n]}"  for n in [0 .. Length(imagenm) - 1]
+
+### -----------------------------------------------------------------
+// マインスイーパー自動処理　　#n50
+if KINDOFOS() &lt; 20 then Exit  // Vista以上の必要あり
+Public cell[32,32]            // 状態[x,y](地雷個数)
+Public row, col               // 横、縦
+Public id
+id = GETID("マインスイーパ")
+while True
+   状態確認()
+   クリック()
+   Sleep(0.5)
+   if GETID("負けました", "#32770", 0.01)&gt;0 then break
+   if GETID("勝ちました", "#32770", 0.01)&gt;0 then break
+wend
+
+// ACCによる全ての状態を取得
+Procedure 状態確認()
+   GETITEM(id, ITM_ACCCLK)
+   wks = ALL_ITEM_LIST[Length(ALL_ITEM_LIST)-1]  // 最終項目から縦横
+   col = Val(Trim(BETWEENSTR(wks, "横", "、")))  // マインスイーパ側の表示が縦横で間違っている...
+   row = Val(Trim(BETWEENSTR(wks, "縦", "の")))
+   res = row +", "+col+"&lt;#CR&gt;"
+   n = 0
+   for y = 1 to col
+      for x = 1 to row
+         wks = ALL_ITEM_LIST[n]
+         n = n + 1
+         ifb Pos("開いていない", wks)&gt;0
+            cell[x,y] = -1                // 開いてない:-1
+         elseif Pos("地雷はありません", wks)&gt;0
+            cell[x,y] = 0                 // 地雷なし:0
+         else
+            cell[x,y] = Val(Trim(BETWEENSTR(wks, "周囲に", "個の地雷")))  // 地雷個数
+         endif
+         res = res + format(cell[x,y], 3)
+      next
+      res = res + "&lt;#CR&gt;"
+   next
+   fukidasi(res, 0, 0, 0, 8, "ＭＳ ゴシック",,,64)
+Fend
+
+// 解法は乱数による神託方式
+Procedure クリック()
+   while True
+      x = RANDOM(row)+1
+      y = RANDOM(col)+1
+      ifb cell[x,y]&lt;0
+         flg = CLK_ACC or CLK_SHORT or CLK_MUSMOVE
+         if y &gt; col/2 then flg = flg or CLK_FROMLAST  // 位置が後半であれば後ろからサーチ
+         ClkItem(id, "横 "+y +"、縦 "+x, flg)         // 表示がX, Yで逆
+         break
+     endif
+   wend
+Fend
+----------------------------------------------------------------- ###
+class n50
+  @main = ->
+    ### TODO ###
+
+### -----------------------------------------------------------------
+// PowerShellより C#を呼び出す（足し算をする）　　#n51
+pls1 = 5
+pls2 = 9
+wks = "(" + pls1 + "," + pls2 + ")"
+print PowerShell(CShp + "[Samplecls]::PlusFuc" + wks)
+PowerShell(CShp + "[Samplecls]::PlusFuc2" + wks)
+
+TextBlock CShp
+$source=@"
+using System.Windows.Forms;
+public class Samplecls{
+    public static string PlusFuc(string a, int b)
+    {
+        return "数値足算：" + (int.Parse(a) + b);
+    }
+    public static void PlusFuc2(string a, int b)
+    {
+        MessageBox.Show("文字足算：" + a + b.ToString());
+    }
+}
+"@
+Add-Type -Language CSharp -TypeDefinition $Source -ReferencedAssemblies System.Windows.Forms
+
+EndTextBlock
+----------------------------------------------------------------- ###
+class n51
+  @main = ->
+    ### TODO ###
+
+### -----------------------------------------------------------------
+// PowerShellより .Net Frameworkを利用しフォームを作る　　#n52
+PowerShell(netForm, True, 2)
+id = GETID("test !!!", "WindowsForms", -1)
+ACW(id, 100, 100)
+
+TextBlock netForm
+[System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
+$form = New-Object System.Windows.Forms.Form
+$form.width = 300
+$form.height = 200
+$form.Text = "test !!!"
+$label = New-Object System.Windows.Forms.Label
+$label.Location = New-Object System.Drawing.Point(100, 50)
+$label.Text = "ラベル"
+$form.Controls.Add($label)
+$button = New-Object System.Windows.Forms.Button
+$button.Location = New-Object System.Drawing.Point(100, 100)
+$button.Text = "ボタン"
+$button.add_Click({$label.Text = "Hello world !"})
+$form.Controls.Add($button)
+$Form.ShowDialog()
+EndTextBlock
+----------------------------------------------------------------- ###
+class n52
+  @main = ->
+    ### TODO ###
+
+### -----------------------------------------------------------------
+// デフォルトプリンタの設定を変更する　　#n53
+// デフォルトプリンタの設定
+obj = CreateOLEObj("WScript.Network")
+obj.SetDefaultPrinter("プリンタ名")
+// プロパティの表示
+DOSCMD("rundll32 printui.dll,PrintUIEntry /p /n<#DBL>プリンタ名<#DBL>", True)
+----------------------------------------------------------------- ###
+class n53
+  @main = ->
+    obj = CreateOLEObj("WScript.Network")
+    obj.SetDefaultPrinter("プリンタ名")
+    # プロパティの表示
+    DOSCMD("rundll32 printui.dll,PrintUIEntry /p /n<#DBL>プリンタ名<#DBL>", True)
+
+### -----------------------------------------------------------------
+// 1分間操作がなかったら場合にモニターをOFF状態にする　　#n54
+flg = True
+sv_tm = 0               // 時間保存
+sv_x = -1;  sv_y = -1   // マウス位置保存
+while True
+    for k = VK_LBUTTON to VK_F12        // キーの確認
+       if GETKEYSTATE(k) then flg = True
+    next
+    ifb (sv_x <> G_MOUSE_X) or (sv_y <> G_MOUSE_Y)  // マウス位置確認
+        flg = True
+        sv_x = G_MOUSE_X
+        sv_y = G_MOUSE_Y
+    endif
+    ifb flg
+        sv_tm = GETTIME()
+        flg = False
+    else
+        ifb (GETTIME() - sv_tm) > 60   // 60秒以上変化なし
+            POFF(P_MONIPOWER2)
+            break
+        endif
+    endif
+    sleep(2)
+wend
+----------------------------------------------------------------- ###
+class n54
+  @main = ->
+    ### TODO ###
+
+### -----------------------------------------------------------------
+// 指定フォルダにあるjpgファイルをペイントにドロップする　　#n55
+folder = "C:\Users\xxxx\Pictures"
+paintID = exec("mspaint.exe")       // ペイントの起動
+n = GETDIR(folder, "*.jpg")         // jpgファイル名の取得
+for i = 0 to n-1
+    file = GETDIR_FILES[i]
+    DROPFILE(paintID, folder, file)  // 1つずつドロップ
+    Fukidasi((i+1)+"/"+n+"： " +file)
+    sleep(5)                         // 5秒単位で次へ
+next
+----------------------------------------------------------------- ###
+class n55
+  @main = ->
+    `folder = "C:\Users\xxxx\Pictures"` # ToDO
+    paintID = exec("mspaint.exe")       # ペイントの起動
+    n = GETDIR(folder, "*.jpg")         # jpgファイル名の取得
+    for i in [0 .. n-1]
+      file = GETDIR_FILES[i]
+      DROPFILE(paintID, folder, file)   # 1つずつドロップ
+      Fukidasi( "#{i+1}/#{n}： #{file}")
+      sleep 5                           # 5秒単位で次へ
+
+### -----------------------------------------------------------------
+// 指定ウィンドウの全オブジェクトの文字を種類別に取得する　　#n56
+id = GETID("xxxx")      // ウィンドウ指定
+dim name[] = "ボタン", "リスト/コンボ", "タブ", "メニュ", "ツリービュ", "リストビュ", "エディト", "スタテック文字", "ステータスバー", "ツールバー", "ACCクリック可", "ACCテキスト"
+dim kid[] =  ITM_BTN, ITM_LIST, ITM_TAB, ITM_MENU, ITM_TREEVEW, ITM_LSTVEW, ITM_EDIT, ITM_STATIC, ITM_STATUSBAR, ITM_TOOLBAR, ITM_ACCCLK, ITM_ACCTXT
+for x = 0 to Length(name)-1
+  print name[x]
+  for y = 0 to GETITEM(id, kid[x])-1  // GETITEM関数により種別指定で文字取得
+    print "　" + ALL_ITEM_LIST[y]
+  next
+  print
+next
+----------------------------------------------------------------- ###
+class n56
+  @main = ->
+    ### TODO ###
+
+### -----------------------------------------------------------------
+// OCRの利用（Office付属）　　#n57
+CONST miLANG_ENGLISH = 9                  // English
+CONST miLANG_JAPANESE = 17                // 日本語
+// メモ帳に文字を書き BMP保存
+id = Exec("notepad.exe")
+SendStr(id, "2011/01/01 I am hungry", 1, True)
+SCKey(id, VK_END, VK_RETURN, VK_RETURN)  // キャレットを移動
+SaveImg("test.bmp", id, 0, 0, 200, 32, True)
+// BMPをOCRに読み込む
+doc = CreateOLEObj("MODI.Document")
+try
+  doc.Create("test.bmp")
+except
+  doc.Create("test.bmp")
+endtry
+doc.OCR(miLANG_ENGLISH, False, False)
+for i = 0 to doc.Images.Count-1
+    print doc.Images[i].Layout.Text
+next
+----------------------------------------------------------------- ###
+class n57
+  @main = ->
+    `CONST miLANG_ENGLISH = 9                  // English`  # TODO
+    `CONST miLANG_JAPANESE = 17                // 日本語`   # TODO
+
+    ### メモ帳に文字を書き BMP保存 ###
+    id = Exec("notepad.exe")
+    SendStr(id, "2011/01/01 I am hungry", 1, True)
+    SCKey(id, VK_END, VK_RETURN, VK_RETURN)  # キャレットを移動
+    SaveImg("test.bmp", id, 0, 0, 200, 32, True)
+
+    ### BMPをOCRに読み込む ###
+    doc = CreateOLEObj("MODI.Document")
+    try
+      doc.Create("test.bmp")
+    catch dummy
+      doc.Create("test.bmp")
+
+    doc.OCR(miLANG_ENGLISH, False, False)
+    print doc.Images[i].Layout.Text   for i in [0 .. doc.Images.Count-1]
+
+### -----------------------------------------------------------------
+// IE にてファイルのダウンロード処理　　#n58
+// IEにてダウンロードのページが開いている事（http://www.uwsc.info/download.html)
+ieid = GETID("Internet Explorer", "IEFrame")
+ClkItem(ieid, "UWSC Free版", CLK_ACC or CLK_SHORT)  // Free版のUWSCをクリック
+clkFiledownloadDlg(ieid)
+setNameFileDlg("abc", ".zip")                       // ファイル名 abc.zip にてダウンロード
+
+// ダウンロードにて '保存(名前を付けて保存)'をクリック
+Procedure clkFiledownloadDlg(IEid)
+   ws = CreateOleObj("Wscript.Shell")
+   s = ws.RegRead("HKLM\SOFTWARE\Microsoft\Internet Explorer\Version")  // IEのバージョンチェック
+   ifb Val(Copy(s,1,Pos(".",s)-1)) &lt; 9              // IE7, IE8
+      GETID("ファイルのダウンロード", "#32770", 5)
+      for i = 0 to 30
+         if (i mod 6)=0 then CtrlWin(GETID("download 完了しました","#32770"), ACTIVATE)
+         id = GETID("ファイルのダウンロード", "#32770")
+         if id &lt; 0 then break
+         ClkItem(id, "保存", CLK_BTN or CLK_MUSMOVE)
+         sleep(1)
+      next
+   else                                            // IE9
+      for i = 0 to 10
+         CTRLWIN(IEid, ACTIVATE)
+         Sleep(1)
+         CLKITEM(HNDtoID(GETCTLHND(IEid,"DirectUIHWND",2)), "保存", CLK_ACC, False)
+         KBD(VK_DOWN)
+         CLKITEM(GETID("","#32768"),"名前を付けて保存", CLK_ACC or CLK_BACK)
+         if GETID("名前を付けて保存", "#32770", 3) &gt; 0 then break
+      next
+   endif
+Fend
+// '名前を付けて保存'ダイアログに名前を設定し保存
+// fname:保存ファイル名、 extens:拡張子
+Function setNameFileDlg(fname, extens)
+   Result = False
+   id = GETID("名前を付けて保存", "#32770", 5)
+   if id &lt; then Exit
+   Sleep(1)
+   pp = -1
+   for n = 1 to 3       // 検索項目が付加される事がある為Edit順番を確認
+      ifb Pos(extens, GetStr(id, n))&gt;0
+         pp = n
+         break
+      endif
+   next
+   if pp &lt; 0 then Exit
+   SendStr(id, fname + extens, pp, True)
+   Result = ClkItem(id, "保存", CLK_BTN or CLK_MUSMOVE)
+Fend
+----------------------------------------------------------------- ###
+class n58
+  @main = ->
+    ### TODO ###
+
+### -----------------------------------------------------------------
+// OpenOffice.org/LibreOffice 表計算(Calc)の操作、存在しない場合にはExcelにて　　#n59
+// Pro版のみ
+try
+  ex = XLOPEN(, XL_OOOC)   // OpenOffice.org もしくは LibreOffice の Calcの起動
+except
+  try
+    ex = XLOPEN(, XL_NEW)  // Excelはあるか
+  except
+    msgbox("OOo Calcも Excelもありません")
+    Exit
+  endTry
+endTry
+anm = SPLIT("A B C D E F G H I")
+XLSETDATA(ex, anm, "A1")
+dim dd[9, 9]   // 9x9の値作成
+for y = 1 to 9
+   for x = 1 to 9
+      dd[y, x] = y*10+x
+   next
+next
+XLSETDATA(ex, dd, "A2")   // 一つずつ設定するよりも配列に入れて一度で渡す、その方が早いので
+for x = 0 to 8
+    fum = "=SUM("+anm[x]+"1:"+anm[x]+"9)" // 式 =SUM("A1:A9")
+    XLSETDATA(ex, fum, 12, x+1)
+next
+ret = XLGETDATA(ex, "A12:I12")  // 値の取得(一列指定でも二次元で返される)
+for x = 1 to 9
+    print ret[1][x]
+next
+----------------------------------------------------------------- ###
+class n59
+  @main = ->
+    ### TODO ###
+
+### -----------------------------------------------------------------
+// IE上のFlashからデータ取得(バーチャルFXからレート取得)　　#n60
+DEF_DLL SetParent(HWND, HWND): HWND: User32
+IE = CreateOLEObj("InternetExplorer.Application")
+IE.Visible = True
+IE.Navigate("http://www.virtualfx.jp/")
+while True                                              // 接続表示待ち
+    if (! ie.busy) and (ie.readyState=4) then Break
+    sleep(0.1)
+wend
+CtrlWin(HndToID(IE.HWnd), MIN)
+sleep(2)
+hnd = GetCtlHnd(IE.HWnd,"MacromediaFlashPlayerActiveX", 2)  // Flash(リアルタイムレート)
+flash_id = HndToID(hnd)
+SetParent(hnd, NULL)                                        // FlashをIEからデスクトップに移動
+ACW(flash_id, G_SCREEN_W-STATUS(flash_id, ST_WIDTH), 0)
+ClkItem(flash_id, "C", CLK_ACC, True, 2)                    // バックを黒に
+sleep(1)
+DIM dd[9]  // 傾き計算 10*30秒
+slp = 0
+while True
+   for n = 0 to GETITEM(flash_id, ITM_ACCTXT or ITM_BACK)-1
+       if ALL_ITEM_LIST[n] = "米ドル円"
+          bid = VAL(ALL_ITEM_LIST[n+3])
+          ask = VAL(ALL_ITEM_LIST[n+6])
+       endif
+  next
+  SHIFTARRAY(dd, 1)
+  dd[0] = bid       // 最直近
+  if dd[9]&gt;0 then slp = slope(dd)*-100   // データがそろえば傾き計算
+  fukidasi("米ドル円 bid="+ bid +", ask="+ ask +", 傾き="+FORMAT(slp,7,5))
+  sleep(30)
+wend
+
+// 回帰:傾き
+Function slope(wk[])
+   x=0;  y=0;  x2=0;  xy=0
+   n = Length(wk)
+   for i = 0 to n-1
+       x = x + i
+       y = y + wk[i]
+       x2 = x2 + i * i
+       xy = xy + i * wk[i]
+   next
+   Result = (xy * n - (x*y)) / (x2 * n - (x*x))
+Fend
+----------------------------------------------------------------- ###
+class n60
+  @main = ->
+    ### TODO ###
