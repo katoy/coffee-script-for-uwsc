@@ -1,0 +1,4 @@
+const OFFSET = 1
+fn = (x) ->
+  OFFSET = 2
+  RESULT = OFFSET + x
