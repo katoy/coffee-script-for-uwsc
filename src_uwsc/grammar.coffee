@@ -76,6 +76,8 @@ grammar =
 
   # Pure statements which cannot be expressions.
   Statement: [
+    o 'CONST_DEF'
+    o 'PUBLIC_DEF'
     o 'Return'
     o 'Comment'
     o 'STATEMENT',                              -> new Literal $1
@@ -130,6 +132,15 @@ grammar =
     o 'UNDEFINED',                              -> new Undefined
     o 'NULL',                                   -> new Null
     o 'BOOL',                                   -> new Bool $1
+  ]
+
+  CONST_DEF: [
+    o 'CONST Identifier = Expression',          -> new Assign $2, $4, undefined, {'const': true}
+  ]
+
+  PUBLIC_DEF: [
+    o 'PUBLIC Identifier = Expression',         -> new Assign $2, $4, undefined, {'public': true}
+    o 'PUBLIC Identifier',                      -> new Assign $2, undefined, undefined, {'public': true}
   ]
 
   # Assignment of a variable, property, or index to a value.
@@ -569,7 +580,7 @@ operators = [
   ['left',      'COMPARE']
   ['left',      'LOGIC']
   ['nonassoc',  'INDENT', 'OUTDENT']
-  ['right',     '=', ':', 'COMPOUND_ASSIGN', 'RETURN', 'THROW', 'EXTENDS']
+  ['right',     '=', ':', 'COMPOUND_ASSIGN', 'RETURN', 'THROW', 'EXTENDS', 'CONST']
   ['right',     'FORIN', 'FOROF', 'BY', 'WHEN']
   ['right',     'IF', 'ELSE', 'FOR', 'WHILE', 'UNTIL', 'LOOP', 'SUPER', 'CLASS']
   ['right',     'POST_IF']

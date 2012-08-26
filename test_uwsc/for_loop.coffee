@@ -16,7 +16,7 @@ for i in [0..30] when i%2 is 0 by 3
 for i in [0..30] by 3 when i%2 is 0
   PRINT i
 
-console.log(i)  for i in [0..30] by 3 when i%2 is 0
+PRINT i  for i in [0..30] by 3 when i%2 is 0
 
 ### -2, -1, 0 , 1, 2 ###
 for i in [-2..2]

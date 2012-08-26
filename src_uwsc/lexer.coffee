@@ -553,6 +553,7 @@ JS_KEYWORDS = [
   'return', 'throw', 'break', 'continue', 'debugger'
   'if', 'else', 'switch', 'for', 'while', 'do', 'try', 'catch', 'finally'
   'class', 'extends', 'super'
+  'const', 'public'
 ]
 
 # CoffeeScript-only keywords.
@@ -576,10 +577,10 @@ COFFEE_KEYWORDS = COFFEE_KEYWORDS.concat COFFEE_ALIASES
 # used by CoffeeScript internally. We throw an error when these are encountered,
 # to avoid having a JavaScript error at runtime.
 RESERVED = [
-  'case', 'default', 'function', 'var', 'void', 'with', 'const', 'let', 'enum'
+  'case', 'default', 'function', 'var', 'void', 'with', 'let', 'enum'
   'export', 'import', 'native', '__hasProp', '__extends', '__slice', '__bind'
   '__indexOf', 'implements', 'interface', 'package', 'private', 'protected'
-  'public', 'static', 'yield'
+  'static', 'yield'
 ]
 
 STRICT_PROSCRIBED = ['arguments', 'eval']

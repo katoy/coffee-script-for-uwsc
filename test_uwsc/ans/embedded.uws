@@ -5,7 +5,6 @@ If a = 1 To 10
  Print "[1]"
 Endif
 
-
 Class Base
   
   dim a
@@ -13,6 +12,5 @@ Class Base
     RESULT = a
   Fend
   
-
 
 Endclass

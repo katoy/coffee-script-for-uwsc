@@ -1048,7 +1048,8 @@ exports.Assign = class Assign extends Base
     forbidden = (name = @variable.unwrapAll().value) in STRICT_PROSCRIBED
     if forbidden and @context isnt 'object'
       throw SyntaxError "variable name may not be \"#{name}\""
-
+    @is_const = true if options and options['const'] is true
+    @is_public = true if options and options['public'] is true
   children: ['variable', 'value']
 
   isStatement: (o) ->
@@ -1070,6 +1071,7 @@ exports.Assign = class Assign extends Base
       return @compileSplice       o if @variable.isSplice()
       return @compileConditional  o if @context in ['||=', '&&=', '?=']
     name = @variable.compile o, LEVEL_LIST
+    # console.log "------ assign_compile: variable:[#{@variable}], @context=[#{@context}]"
     unless @context
       unless (varBase = @variable.unwrapAll()).isAssignable()
         throw SyntaxError "\"#{ @variable.compile o }\" cannot be assigned."
@@ -1080,17 +1082,33 @@ exports.Assign = class Assign extends Base
           if name.toUpperCase() is 'RESULT'
             o.scope.add name, 'uwsc_result'
             g_has_uwsc_result = true
+          else if @is_public
+            o.scope.add name, 'uwsc_public'
+          else if @is_const
+            o.scope.add name, 'uwsc_const'
           else
-            o.scope.find name
+            if o.scope.is_const name
+              throw new SyntaxError "re-assignment to const : #{name} = #{o.scope.get_const_val(name)} to #{@value.compile o}"
+            
+            o.scope.find(name) unless o.scope.is_public(name)
     if @value instanceof Code and match = METHOD_DEF.exec name
       @value.klass = match[1] if match[1]
       @value.name  = match[2] ? match[3] ? match[4] ? match[5]
 
-    val = @value.compile o, LEVEL_LIST
+    value_str = undefined
+    val = value_str = @value.compile o, LEVEL_LIST if @value
+    
     return "#{name}: #{val}" if @context is 'object'
     # uwsc katoy    
-    if "#{@value.bound}" is "undefined"
-      val = name + " #{ @context or '=' } " + val
+    if (@value is undefined) or "#{@value.bound}" is "undefined"
+      if @value
+        val = name + " #{ @context or '=' } " + val
+      else
+        val = name
+      val = 'CONST ' + val if @is_const
+      val = 'PUBLIC ' + val if @is_public
+      o.scope.set_const_val(name, value_str) if @is_const and value_str
+      o.scope.set_public_val(name, value_str) if @is_public and value_str
     else
       if g_has_uwsc_result
         val = "Function #{val}Fend"

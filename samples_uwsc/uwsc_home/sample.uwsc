@@ -51,8 +51,8 @@ Endclass
 //----------------------------------------------------------------- 
 Class n2
   Procedure main()
-    public G = 0          # グローバル変数
     dim a, b, c
+    PUBLIC G = 0
     a = 1
     b = 2
     c = 計算(a, b)
@@ -1072,7 +1072,7 @@ Class n34
     Procedure BusyWait(ie)
       dim tm
       Sleep(0.5)
-      Const TIME_OUT = 90
+      CONST TIME_OUT = 90
       tm = Gettime()
       While (true)
         Sleep(0.2)
@@ -1359,8 +1359,7 @@ Endclass
 //----------------------------------------------------------------- 
 Class n42
   Procedure main()
-    PUBLIC clear_fuki = -1      // 消去する識別No.を指定する
-    dim clear_fuki
+    PUBLIC clear_fuki = -1
     FUKIDASI("main")
     thread(create_fuki(1, "aaaa", 100, 100))
     thread(create_fuki(2, "bbbb", 200, 200))
@@ -1831,10 +1830,10 @@ Endclass
 //----------------------------------------------------------------- 
 Class n57
   Procedure main()
-    CONST miLANG_ENGLISH = 9                  // English
-    CONST miLANG_JAPANESE = 17                // 日本語
-    // メモ帳に文字を書き BMP保存 
     dim doc, i, id
+    CONST miLANG_ENGLISH = 9
+    CONST miLANG_JAPANESE = 17
+    // メモ帳に文字を書き BMP保存 
     id = Exec("notepad.exe")
     SendStr(id, "2011/01/01 I am hungry", 1, True)
     SCKey(id, VK_END, VK_RETURN, VK_RETURN)

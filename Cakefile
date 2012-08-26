@@ -305,7 +305,7 @@ uwsc_runTests = (UwscScript) ->
     log "failed #{failures.length} and #{message}", red
     for fail in failures
       {error, filename}  = fail
-      uwscFilename       = filename.replace(/\.coffee$/,'.uwsc')
+      uwscFilename       = filename.replace(/\.coffee$/,'.uws')
       match              = error.stack?.match(new RegExp(fail.file+":(\\d+):(\\d+)"))
       match              = error.stack?.match(/on line (\d+):/) unless match
       [match, line, col] = match if match
@@ -326,8 +326,8 @@ uwsc_runTests = (UwscScript) ->
         failures.push {filename, error }
       else
         basename = path.basename(filename, '.coffee')
-        ans_filename = path.join 'test_uwsc/ans', basename + '.uwsc'
-        res_filename = path.join 'test_uwsc/result', basename + '.uwsc'
+        ans_filename = path.join 'test_uwsc/ans', basename + '.uws'
+        res_filename = path.join 'test_uwsc/result', basename + '.uws'
         code_ans = fs.readFileSync ans_filename
         code_res = fs.readFileSync res_filename
         try

@@ -33,7 +33,7 @@ BANNER = '''
 # The list of all the valid option flags that `coffee` knows how to handle.
 SWITCHES = [
   # ['-b', '--bare',            'compile without a top-level function wrapper']
-  # ['-c', '--compile',         'compile to JavaScript and save as .uwsc files']
+  # ['-c', '--compile',         'compile to JavaScript and save as .uws files']
   # ['-e', '--eval',            'pass a string from the command line as input']
   ['-h', '--help',            'display this help message']
   ['-j', '--join [FILE]',     'concatenate the source CoffeeScript before compiling']
@@ -256,7 +256,7 @@ removeSource = (source, base, removeJs) ->
 
 # Get the corresponding output JavaScript path for a source file.
 outputPath = (source, base) ->
-  filename  = path.basename(source, path.extname(source)) + '.uwsc'
+  filename  = path.basename(source, path.extname(source)) + '.uws'
   srcDir    = path.dirname source
   baseDir   = if base is '.' then srcDir else srcDir.substring base.length
   dir       = if opts.output then path.join opts.output, baseDir else srcDir

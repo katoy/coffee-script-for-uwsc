@@ -49,7 +49,7 @@ Fend
 ----------------------------------------------------------------- ###
 class n2
   @main = ->
-    `public G = 0          # グローバル変数`    # TODO
+    public G = 0           # グローバル変数
     a = 1                  # ローカル変数
     b = 2
     c = 計算(a, b)
@@ -909,7 +909,7 @@ class n34
     ### ------ ###
     BusyWait = (ie) ->
       Sleep(0.5)  # Wait
-      `Const TIME_OUT = 90`  # TODO
+      const TIME_OUT = 90
       tm = Gettime()
       loop
         Sleep 0.2
@@ -1148,7 +1148,7 @@ Fend
 ----------------------------------------------------------------- ###
 class n42
   @main = ->
-    `PUBLIC clear_fuki = -1      // 消去する識別No.を指定する`  # TODO
+    public clear_fuki = -1      # 消去する識別No.を指定する
     FUKIDASI("main")
     thread create_fuki(1, "aaaa", 100, 100)        # スレッドにて吹出し生成
     thread create_fuki(2, "bbbb", 200, 200)
@@ -1562,8 +1562,8 @@ next
 ----------------------------------------------------------------- ###
 class n57
   @main = ->
-    `CONST miLANG_ENGLISH = 9                  // English`  # TODO
-    `CONST miLANG_JAPANESE = 17                // 日本語`   # TODO
+    const miLANG_ENGLISH = 9                  # English
+    const miLANG_JAPANESE = 17                # 日本語
 
     ### メモ帳に文字を書き BMP保存 ###
     id = Exec("notepad.exe")

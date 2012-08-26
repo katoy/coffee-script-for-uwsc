@@ -57,6 +57,48 @@ exports.Scope = class Scope
   check: (name) ->
     !!(@type(name) or @parent?.check(name))
 
+  is_const: (name) ->
+    t = undefined
+    for v in @variables
+      t = v.type if v.name is name
+    return t is 'uwsc_const' if t
+    return @parent.is_const(name) if @parent
+    undefined
+ 
+  set_const_val: (name, val) ->
+    for v in @variables when v.name is name and v.type = 'uwsc_const'
+      v._val = val
+      return
+    return @parent.set_const_val(name) if @parent
+
+  get_const_val: (name) ->
+    ans = undefined
+    for v in @variables when v.name is name and v.type = 'uwsc_const'
+      return v._val
+    return @parent.get_const_val(name) if @parent
+    undefined
+
+  is_public: (name) ->
+    t = undefined
+    for v in @variables
+      t = v.type if v.name is name
+    return t is 'uwsc_publuc' if t
+    return @parent.is_public(name) if @parent
+    undefined
+ 
+  set_public_val: (name, val) ->
+    for v in @variables when v.name is name and v.type = 'uwsc_public'
+      v._val = val
+      return
+    return @parent.set_public_val(name) if @parent
+ 
+  get_public_val: (name) ->
+    ans = undefined
+    for v in @variables when v.name is name and v.type = 'uwsc_public'
+      return v._val
+    return @parent.get_public_val(name) if @parent
+    undefined
+    
   # Generate a temporary variable name at the given index.
   temporary: (name, index) ->
     if name.length > 1
