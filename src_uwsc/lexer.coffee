@@ -87,7 +87,7 @@ exports.Lexer = class Lexer
     tag = 'IDENTIFIER'
 
     if not forcedIdentifier and (id in JS_KEYWORDS or id in COFFEE_KEYWORDS)
-      tag = id.toUpperCase()
+      tag = id.toUpperCase() 
       if tag is 'WHEN' and @tag() in LINE_BREAK
         tag = 'LEADING_WHEN'
       else if tag is 'FOR'
@@ -123,7 +123,8 @@ exports.Lexer = class Lexer
         when 'true', 'false'     then 'BOOL'
         when 'break', 'continue' then 'STATEMENT'
         else  tag
-
+        
+    # console.log "---------- " + tag + ", " + id
     @token tag, id
     @token ':', ':' if colon
     input.length
@@ -553,11 +554,11 @@ JS_KEYWORDS = [
   'return', 'throw', 'break', 'continue', 'debugger'
   'if', 'else', 'switch', 'for', 'while', 'do', 'try', 'catch', 'finally'
   'class', 'extends', 'super'
-  'const', 'public'
+  'const', 'public', 'var'
 ]
 
 # CoffeeScript-only keywords.
-COFFEE_KEYWORDS = ['undefined', 'then', 'unless', 'until', 'loop', 'of', 'by', 'when']
+COFFEE_KEYWORDS = ['undefined', 'then', 'unless', 'until', 'loop', 'of', 'by', 'when', 'dim']
 
 COFFEE_ALIAS_MAP =
   and  : '&&'
@@ -577,7 +578,7 @@ COFFEE_KEYWORDS = COFFEE_KEYWORDS.concat COFFEE_ALIASES
 # used by CoffeeScript internally. We throw an error when these are encountered,
 # to avoid having a JavaScript error at runtime.
 RESERVED = [
-  'case', 'default', 'function', 'var', 'void', 'with', 'let', 'enum'
+  'case', 'default', 'function', 'void', 'with', 'let', 'enum'
   'export', 'import', 'native', '__hasProp', '__extends', '__slice', '__bind'
   '__indexOf', 'implements', 'interface', 'package', 'private', 'protected'
   'static', 'yield'

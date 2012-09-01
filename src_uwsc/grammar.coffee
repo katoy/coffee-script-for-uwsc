@@ -76,6 +76,7 @@ grammar =
 
   # Pure statements which cannot be expressions.
   Statement: [
+    o 'ARRAY_DEF'
     o 'CONST_DEF'
     o 'PUBLIC_DEF'
     o 'Return'
@@ -132,6 +133,20 @@ grammar =
     o 'UNDEFINED',                              -> new Undefined
     o 'NULL',                                   -> new Null
     o 'BOOL',                                   -> new Bool $1
+  ]
+
+  ArrayDimList: [
+    o 'ArrayDim',                  -> $1
+    o 'ArrayDimList ArrayDim',     -> '[]' + $2
+  ]
+  
+  ArrayDim: [
+    o 'INDEX_START INDEX_END',      -> '[]'
+  ]
+
+  ARRAY_DEF: [
+    o 'DIM Value = Array',                   -> new Assign $2, $4, undefined, {'array': true}
+    o 'DIM Value',                           -> new Assign $2, undefined, undefined, {'array': true}
   ]
 
   CONST_DEF: [
@@ -211,8 +226,10 @@ grammar =
   # that hoovers up the remaining arguments.
   Param: [
     o 'ParamVar',                               -> new Param $1
+    o 'ParamVar ArrayDimList',                  -> new Param $1, null, no, no, new ArrayDims($2)
     o 'ParamVar ...',                           -> new Param $1, null, on
     o 'ParamVar = Expression',                  -> new Param $1, $3
+    o 'VAR ParamVar',                           -> new Param $2, null, no, yes
   ]
 
  # Function Parameters

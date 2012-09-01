@@ -47,7 +47,7 @@ Function 計算(ka, kb)        // 関数名 ２バイト文字でもOK
     G = 99                   // グローバル変数
 Fend
 ----------------------------------------------------------------- ###
-class n2
+class n3
   @main = ->
     public G = 0           # グローバル変数
     a = 1                  # ローカル変数
@@ -59,7 +59,7 @@ class n2
   ### Function 戻り値あり（Result変数に戻り値を入れる)  ###
   @計算 = (ka, kb) ->      # 関数名 ２バイト文字でもOK
     Result = ka + kb       # 関数の戻り値は  Result変数
-    `G = 99                # グローバル変数`   # TODO
+    G = 99                 # グローバル変数
 
 ### -----------------------------------------------------------------
 // プロシージャ(Procedure)の使用　　#n4
@@ -675,7 +675,7 @@ class n27
         break if  (! IE.busy) and (IE.readyState=4)       # 接続表示待ち
       p = -1
       atag = IE.document.body.all.tags("A")
-      for i in  [0 ... atag.Length - 1]                  # 次ページがあるか確認
+      for i in  [0 ... atag.Length]                  # 次ページがあるか確認
         if atag.item[i].innerText = "[次のページ]"
           p = i
           break

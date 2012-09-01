@@ -734,7 +734,11 @@ exports.Range = class Range extends Base
     # console.log "idx=#{idx}, idxName=#{idxName}, namedIndex=#{namedIndex}, @from=#{@fromC},#{@fromVar}, @to=#{@toC},#{@toVar} @step=#{@sterp},#{@stepVar}"
     # console.log "     fromNum=#{@fromNum}, toNum=#{@toNum}, stepNum=#{@setpNum}"
     # uwsc: katoy
-    varPart   = "#{idxName} = #{@fromC} To #{@toC}"
+    varPart = ''
+    if @equals is ''
+      varPart   = "#{idxName} = #{@fromC} To #{@toC} - 1"
+    else
+      varPart   = "#{idxName} = #{@fromC} To #{@toC}"
     varPart  += " Step #{@step}"  if @stepVar
     return varPart
     
@@ -1050,6 +1054,7 @@ exports.Assign = class Assign extends Base
       throw SyntaxError "variable name may not be \"#{name}\""
     @is_const = true if options and options['const'] is true
     @is_public = true if options and options['public'] is true
+    @is_array = true if options and options['array'] is true
   children: ['variable', 'value']
 
   isStatement: (o) ->
@@ -1086,6 +1091,8 @@ exports.Assign = class Assign extends Base
             o.scope.add name, 'uwsc_public'
           else if @is_const
             o.scope.add name, 'uwsc_const'
+          else if @is_array
+            o.scope.add name, 'uwsc_array'
           else
             if o.scope.is_const name
               throw new SyntaxError "re-assignment to const : #{name} = #{o.scope.get_const_val(name)} to #{@value.compile o}"
@@ -1107,6 +1114,7 @@ exports.Assign = class Assign extends Base
         val = name
       val = 'CONST ' + val if @is_const
       val = 'PUBLIC ' + val if @is_public
+      val = 'DIM ' + val if @is_array
       o.scope.set_const_val(name, value_str) if @is_const and value_str
       o.scope.set_public_val(name, value_str) if @is_public and value_str
     else
@@ -1277,9 +1285,11 @@ exports.Code = class Code extends Base
       else
         ref = param
         if param.value
-          lit = new Literal ref.name.value + ' == null'
-          val = new Assign new Value(param.name), param.value, '='
-          exprs.push new If lit, val
+        #   lit = new Literal ref.name.value + ' == null'
+        #   val  = new Assign new Value(param.name), param.value, '='
+        #   exprs.push new If lit, val
+        # uwsc: katoy
+          ref  = new Assign new Value(param.name), param.value, '='
       params.push ref unless splats
     wasEmpty = @body.isEmpty()
     exprs.unshift splats if splats
@@ -1323,14 +1333,17 @@ exports.Code = class Code extends Base
 # these parameters can also attach themselves to the context of the function,
 # as well as be a splat, gathering up a group of parameters into an array.
 exports.Param = class Param extends Base
-  constructor: (@name, @value, @splat) ->
+  constructor: (@name, @value, @splat, @is_var, @is_array) ->
     if (name = @name.unwrapAll().value) in STRICT_PROSCRIBED
       throw SyntaxError "parameter name \"#{name}\" is not allowed"
 
   children: ['name', 'value']
 
   compile: (o) ->
-    @name.compile o, LEVEL_LIST
+    code = @name.compile o, LEVEL_LIST
+    code = 'var ' + code if @is_var
+    code = code + @is_array.compile o if @is_array
+    code
 
   asReference: (o) ->
     return @reference if @reference
@@ -1776,6 +1789,14 @@ exports.Parens = class Parens extends Base
     bare = o.level < LEVEL_OP and (expr instanceof Op or expr instanceof Call or
       (expr instanceof For and expr.returns))    
     if bare then code else "(#{code})"
+
+exports.ArrayDims = class ArrayDims extends Base
+  constructor: (@dims) ->
+
+  children: ['dims']
+
+  compileNode: (o) ->
+    @dims
 
 #### For
 
