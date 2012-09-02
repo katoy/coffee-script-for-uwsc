@@ -119,7 +119,7 @@ exports.Lexer = class Lexer
       tag = switch id
         when '!'                 then 'UNARY'
         when '==', '!='          then 'COMPARE'
-        when '&&', '||'          then 'LOGIC'
+        when 'and', 'or'         then 'LOGIC'
         when 'true', 'false'     then 'BOOL'
         when 'break', 'continue' then 'STATEMENT'
         else  tag
@@ -342,7 +342,7 @@ exports.Lexer = class Lexer
     if value is '=' and prev
       if not prev[1].reserved and prev[1] in JS_FORBIDDEN
         @error "reserved word \"#{@value()}\" can't be assigned"
-      if prev[1] in ['||', '&&']
+      if prev[1] in ['or', 'and']  #ussc: katoy
         prev[0] = 'COMPOUND_ASSIGN'
         prev[1] += '='
         return value.length
@@ -425,9 +425,10 @@ exports.Lexer = class Lexer
         --continueCount
         continue
       switch letter = str.charAt i
-        when '\\'
-          ++continueCount
-          continue
+        # uwsc: katoy
+        #when '\\'
+        #  ++continueCount
+        #  continue
         when end
           stack.pop()
           unless stack.length
@@ -459,9 +460,10 @@ exports.Lexer = class Lexer
     pi = 0
     i  = -1
     while letter = str.charAt i += 1
-      if letter is '\\'
-        i += 1
-        continue
+      # uwsc: katoy
+      #if letter is '\\'
+      #  i += 1
+      #  continue
       unless letter is '#' and str.charAt(i+1) is '{' and
              (expr = @balancedString str[i + 1..], '}')
         continue
@@ -537,7 +539,8 @@ exports.Lexer = class Lexer
     return quote + quote unless body
     body = body.replace /\\([\s\S])/g, (match, contents) ->
       if contents in ['\n', quote] then contents else match
-    body = body.replace /// #{quote} ///g, '\\$&'
+    # uwsc: katoy
+    #body = body.replace /// #{quote} ///g, '\\$&'
     quote + @escapeLines(body, heredoc) + quote
 
   # Throws a syntax error on the current `@line`.
@@ -558,11 +561,11 @@ JS_KEYWORDS = [
 ]
 
 # CoffeeScript-only keywords.
-COFFEE_KEYWORDS = ['undefined', 'then', 'unless', 'until', 'loop', 'of', 'by', 'when', 'dim']
+COFFEE_KEYWORDS = ['undefined', 'then', 'unless', 'until', 'loop', 'of', 'by', 'when', 'dim', 'public_dim']
 
 COFFEE_ALIAS_MAP =
-  and  : '&&'
-  or   : '||'
+  and  : 'and'   # uwsc: katoy
+  or   : 'or'
   is   : '=='
   isnt : '!='
   not  : '!'
@@ -662,14 +665,16 @@ TRAILING_SPACES = /\s+$/
 
 # Compound assignment tokens.
 COMPOUND_ASSIGN = [
-  '-=', '+=', '/=', '*=', '%=', '||=', '&&=', '?=', '<<=', '>>=', '>>>=', '&=', '^=', '|='
+  '-=', '+=', '/=', '*=', '%=', 'or=', 'and=', '?=', '<<=', '>>=', '>>>=', '&=', '^=', '|='
 ]
 
 # Unary tokens.
 UNARY   = ['!', '~', 'NEW', 'TYPEOF', 'DELETE', 'DO']
 
 # Logical tokens.
-LOGIC   = ['&&', '||', '&', '|', '^']
+# uwsc: katoy
+# LOGIC   = ['&&', '||', '&', '|', '^']
+LOGIC   = ['and', 'or', '&', '|', '^']
 
 # Bit-shifting tokens.
 SHIFT   = ['<<', '>>', '>>>']

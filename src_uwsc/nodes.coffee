@@ -1112,9 +1112,9 @@ exports.Assign = class Assign extends Base
         val = name + " #{ @context or '=' } " + val
       else
         val = name
+      val = 'DIM ' + val if @is_array
       val = 'CONST ' + val if @is_const
       val = 'PUBLIC ' + val if @is_public
-      val = 'DIM ' + val if @is_array
       o.scope.set_const_val(name, value_str) if @is_const and value_str
       o.scope.set_public_val(name, value_str) if @is_public and value_str
     else
@@ -1333,7 +1333,7 @@ exports.Code = class Code extends Base
 # these parameters can also attach themselves to the context of the function,
 # as well as be a splat, gathering up a group of parameters into an array.
 exports.Param = class Param extends Base
-  constructor: (@name, @value, @splat, @is_var, @is_array) ->
+  constructor: (@name, @value, @splat, @is_var, @dims) ->
     if (name = @name.unwrapAll().value) in STRICT_PROSCRIBED
       throw SyntaxError "parameter name \"#{name}\" is not allowed"
 
@@ -1342,9 +1342,16 @@ exports.Param = class Param extends Base
   compile: (o) ->
     code = @name.compile o, LEVEL_LIST
     code = 'var ' + code if @is_var
-    code = code + @is_array.compile o if @is_array
+    code = code + @show_dims(@dims, o) if @dims
     code
-
+    
+  show_dims: (dims, o) ->
+    code = ''
+    for d in dims
+      n = ''
+      n = d.compileNode o if d
+      code = code + '[' + n + ']'
+    code
   asReference: (o) ->
     return @reference if @reference
     node = @name
@@ -1789,14 +1796,6 @@ exports.Parens = class Parens extends Base
     bare = o.level < LEVEL_OP and (expr instanceof Op or expr instanceof Call or
       (expr instanceof For and expr.returns))    
     if bare then code else "(#{code})"
-
-exports.ArrayDims = class ArrayDims extends Base
-  constructor: (@dims) ->
-
-  children: ['dims']
-
-  compileNode: (o) ->
-    @dims
 
 #### For
 

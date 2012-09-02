@@ -48,8 +48,9 @@ Function 計算(ka, kb)        // 関数名 ２バイト文字でもOK
 Fend
 ----------------------------------------------------------------- ###
 class n3
+  public G = 0           # グローバル変数
+
   @main = ->
-    public G = 0           # グローバル変数
     a = 1                  # ローカル変数
     b = 2
     c = 計算(a, b)
@@ -85,10 +86,10 @@ class n4
     print い               # 99
 
   ### Procedure 戻り値なし ###
-  `Procedure TETUZUKI(a, var b)
+  TETUZUKI = (a, var b) ->
     a = 99
-    b = 99            // var指定により呼び出し元の値は変更される
-  Fend`               # TODO
+    b = 99                # var指定により呼び出し元の値は変更される
+
 ### -----------------------------------------------------------------
 // 開いているウインドウを全て閉じる　　#n5
 for i = 0 to GETALLWIN()-1            // 全てのウインドウＩＤをゲット（ALL_WIN_ID[]変数に入る）
@@ -98,7 +99,7 @@ next
 ----------------------------------------------------------------- ###
 class n5
   @main = ->
-    for i in [0 .. GETALLWIN()-1]          # 全てのウインドウＩＤをゲット（ALL_WIN_ID[]変数に入る）
+    for i in [0 ...  GETALLWIN()]          # 全てのウインドウＩＤをゲット（ALL_WIN_ID[]変数に入る）
       continue                       if STATUS(ALL_WIN_ID[i], ST_CLASS) is "Shell_TrayWnd"  # タスクバーはスキップ
       CTRLWIN(ALL_WIN_ID[i], CLOSE)  if STATUS(ALL_WIN_ID[i], ST_VISIBLE)
 
@@ -120,7 +121,7 @@ class n6
     idfnt = GETID("フォント")
     kz = GETITEM(idfnt, ITM_LIST, 1)
     print "フォント数" + kz
-    print ALL_ITEM_LIST[i]  for i in [0 .. kz - 1]
+    print ALL_ITEM_LIST[i]  for i in [0 ... kz]
 
 ### -----------------------------------------------------------------
 // ボリュームを変える　　#n7
@@ -322,7 +323,7 @@ class n15
   @main = ->
     n = GETALLWIN()
     print "ウィンドウ数=" + n
-    for i in [0 .. n-1]
+    for i in [0 ... n]
       id = ALL_WIN_ID[i]
       print "#{STATUS(ID, ST_TITLE)} , #{STATUS(ID, ST_CLASS)}"
 
@@ -436,7 +437,7 @@ class n20
     キャラ = "Merlin"                      # キャラクタ に Merlin を選択
     obj = CreateOLEObj("Agent.Control.1")
     obj.Connected = true
-    `ss = GET_WIN_DIR + "\msagent\chars\" + キャラ +".acs"`   # TODO
+    ss = GET_WIN_DIR + "\msagent\chars\" + キャラ + ".acs"
     obj.Characters.Load(キャラ, ss)
     agt = obj.Characters(キャラ)
     agt.show
@@ -1060,8 +1061,8 @@ ClkItem(id, "Metal", CLK_ACC, True)         // Look and Feel
 class n39
   @main = ->
     デモ名 = "FileChooserDemo"
-    `パス = "C:\Program Files\Java\demo\jfc\"`                              # TODO
-    `DosCmd("java -jar <#DBL>"+パス+デモ名+"\"+デモ名+".jar<#DBL>", True)`  # TODO
+    パス = "C:\Program Files\Java\demo\jfc\"
+    DosCmd("java -jar <#DBL>"+パス+デモ名+"\"+デモ名+".jar<#DBL>", True)
     id = GETID(デモ名, "SunAwtFrame", -1)
     print "Open"   if ChkBtn(id, "Open", 1, True)    # Dialog Tyep チェック
     print "Save"   if ChkBtn(id, "Save", 1, True)
@@ -1210,7 +1211,7 @@ class n44
       CLKITEM(id, "オプション", CLK_ACC)                    # Windows7
     MOUSEORG(id, 0)
     clockid = GETID("", "SideBar_SettingsWindow")
-    `CLKITEM(clockid, "次へ", CLK_ACC or CLK_BACK, False)`  # フォーカス移す(JavaScriptの画像ボタン)`  # TODO
+    `CLKITEM(clockid, "次へ", CLK_ACC or CLK_BACK, False)    # フォーカス移す(JavaScriptの画像ボタン)`  # TODO
     KBD(VK_SPACE)                                           # 時計を一つ変更
     CLKITEM(clockid, "秒針を表示する", CLK_ACC)
     CLKITEM(clockid, "OK", CLK_ACC)
@@ -1513,7 +1514,7 @@ next
 ----------------------------------------------------------------- ###
 class n55
   @main = ->
-    `folder = "C:\Users\xxxx\Pictures"` # ToDO
+    folder = "C:\Users\xxxx\Pictures"
     paintID = exec("mspaint.exe")       # ペイントの起動
     n = GETDIR(folder, "*.jpg")         # jpgファイル名の取得
     for i in [0 .. n-1]

@@ -76,9 +76,8 @@ grammar =
 
   # Pure statements which cannot be expressions.
   Statement: [
-    o 'ARRAY_DEF'
-    o 'CONST_DEF'
-    o 'PUBLIC_DEF'
+    o 'Array_Def'
+    o 'Var_Def'
     o 'Return'
     o 'Comment'
     o 'STATEMENT',                              -> new Literal $1
@@ -135,27 +134,40 @@ grammar =
     o 'BOOL',                                   -> new Bool $1
   ]
 
+  Array_Attr: [
+    o 'DIM',                       -> {'array': true}
+    o 'PUBLIC_DIM',                -> {'array': true, 'public': true}
+  ]
+
   ArrayDimList: [
     o 'ArrayDim',                  -> $1
-    o 'ArrayDimList ArrayDim',     -> '[]' + $2
+    o 'ArrayDimList ArrayDim',     -> $1.concat $2
   ]
-  
+
   ArrayDim: [
-    o 'INDEX_START INDEX_END',      -> '[]'
+    o 'INDEX_START INDEX_END',            -> [null]
+    o 'INDEX_START Value INDEX_END',      -> [new Value $2]
   ]
 
-  ARRAY_DEF: [
-    o 'DIM Value = Array',                   -> new Assign $2, $4, undefined, {'array': true}
-    o 'DIM Value',                           -> new Assign $2, undefined, undefined, {'array': true}
+  Array_Def: [
+    o 'Array_Attr Value',                    -> new Assign $2, undefined, undefined, $1
+    o 'Array_Attr Value = Array',            -> new Assign $2, $4, undefined, $1
   ]
 
-  CONST_DEF: [
-    o 'CONST Identifier = Expression',          -> new Assign $2, $4, undefined, {'const': true}
+  Var_Attr_Public: [
+    o 'PUBLIC',                              -> {'public':true}
   ]
 
-  PUBLIC_DEF: [
-    o 'PUBLIC Identifier = Expression',         -> new Assign $2, $4, undefined, {'public': true}
-    o 'PUBLIC Identifier',                      -> new Assign $2, undefined, undefined, {'public': true}
+  Var_Attr: [
+    o 'CONST',                               -> {'const':true}
+    o 'CONST PUBLIC',                        -> {'public':true, 'const':true}
+    o 'PUBLIC CONST',                        -> {'public':true, 'const':true}
+  ]
+
+  Var_Def: [
+    o 'Var_Attr_Public Identifier',              -> new Assign $2, undefined, undefined, $1
+    o 'Var_Attr_Public Identifier = Expression', -> new Assign $2, $4, undefined, $1
+    o 'Var_Attr Identifier = Expression',        -> new Assign $2, $4, undefined, $1
   ]
 
   # Assignment of a variable, property, or index to a value.
@@ -226,7 +238,7 @@ grammar =
   # that hoovers up the remaining arguments.
   Param: [
     o 'ParamVar',                               -> new Param $1
-    o 'ParamVar ArrayDimList',                  -> new Param $1, null, no, no, new ArrayDims($2)
+    o 'ParamVar ArrayDimList',                  -> new Param $1, null, no, no, $2
     o 'ParamVar ...',                           -> new Param $1, null, on
     o 'ParamVar = Expression',                  -> new Param $1, $3
     o 'VAR ParamVar',                           -> new Param $2, null, no, yes
