@@ -152,6 +152,7 @@ grammar =
   Array_Def: [
     o 'Array_Attr Value',                    -> new Assign $2, undefined, undefined, $1
     o 'Array_Attr Value = Array',            -> new Assign $2, $4, undefined, $1
+    o 'Array_Attr Value = Range',            -> new Assign $2, $4, undefined, $1
   ]
 
   Var_Attr_Public: [
@@ -348,7 +349,7 @@ grammar =
   # The list of arguments to a function call.
   Arguments: [
     o 'CALL_START CALL_END',                    -> []
-    o 'CALL_START ArgList OptComma CALL_END',   -> $2
+    o 'CALL_START ArgList CALL_END',   -> $2
   ]
 
   # A reference to the *this* current object.
@@ -393,9 +394,11 @@ grammar =
   ArgList: [
     o 'Arg',                                              -> [$1]
     o 'ArgList , Arg',                                    -> $1.concat $3
-    o 'ArgList OptComma TERMINATOR Arg',                  -> $1.concat $4
-    o 'INDENT ArgList OptComma OUTDENT',                  -> $2
-    o 'ArgList OptComma INDENT ArgList OptComma OUTDENT', -> $1.concat $4
+    o 'ArgList , ,',                                      -> $1.concat('').concat('')
+    #o 'ArgList , TERMINATOR',                             -> $1.concat ''
+    #o 'ArgList OptComma TERMINATOR Arg',                  -> $1.concat $4
+    #o 'INDENT ArgList OptComma OUTDENT',                  -> $2
+    #o 'ArgList OptComma INDENT ArgList OptComma OUTDENT', -> $1.concat $4
   ]
 
   # Valid arguments are Blocks or Splats.

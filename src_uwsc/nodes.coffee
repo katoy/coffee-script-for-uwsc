@@ -1104,15 +1104,18 @@ exports.Assign = class Assign extends Base
 
     value_str = undefined
     val = value_str = @value.compile o, LEVEL_LIST if @value
+    val = val[1 .. val.length - 2]  if @is_array and val and val.length > 1
+    name = name + '[]' if @is_array and name.lastIndexOf(']') isnt name.length - 1
     
     return "#{name}: #{val}" if @context is 'object'
     # uwsc katoy    
     if (@value is undefined) or "#{@value.bound}" is "undefined"
-      if @value
+      if @value and val.length > 0
         val = name + " #{ @context or '=' } " + val
       else
         val = name
-      val = 'DIM ' + val if @is_array
+
+      val = 'DIM ' + val if @is_array 
       val = 'CONST ' + val if @is_const
       val = 'PUBLIC ' + val if @is_public
       o.scope.set_const_val(name, value_str) if @is_const and value_str
