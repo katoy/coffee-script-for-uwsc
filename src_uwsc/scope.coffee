@@ -109,10 +109,13 @@ exports.Scope = class Scope
 
   # If we need to store an intermediate result, find an available name for a
   # compiler-generated variable. `_var`, `_var2`, and so on...
-  freeVariable: (name, reserve=true) ->
+  freeVariable: (name, reserve=true, is_array=false) ->
     index = 0
     index++ while @check((temp = @temporary name, index))
-    @add temp, 'var', yes if reserve
+    if reserve
+      vtype = 'var'
+      vtype = 'var_array' if is_array
+      @add temp, vtype, yes
     temp
 
   # Ensure that an assignment is made at the top of this scope

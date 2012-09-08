@@ -1119,7 +1119,7 @@ exports.Assign = class Assign extends Base
 
     value_str = undefined
     val = value_str = @value.compile o, LEVEL_LIST if @value
-    if val and val.length > 1
+    if @is_dim and val and val.length > 1
       if @dimension
         val = val[1 .. val.length - 2]
       else if (val.length > 1) and (val[0] is '[') and (val[val.length - 1] is ']')
@@ -1160,29 +1160,17 @@ exports.Assign = class Assign extends Base
       code = value.compile o
       return if o.level >= LEVEL_OP then "(#{code})" else code
     isObject = @variable.isObject()
-    if top and olen is 1 and (obj = objects[0]) not instanceof Splat
-      # Unroll simplest cases: `{v} = x` -> `v = x.v`
-      if obj instanceof Assign
-        {variable: {base: idx}, value: obj} = obj
-      else
-        if obj.base instanceof Parens
-          [obj, idx] = new Value(obj.unwrapAll()).cacheReference o
-        else
-          idx = if isObject
-            if obj.this then obj.properties[0].name else obj
-          else
-            new Literal 0
-      acc   = IDENTIFIER.test idx.unwrap().value or 0
-      value = new Value value
-      value.properties.push new (if acc then Access else Index) idx
-      if obj.unwrap().value in RESERVED
-        throw new SyntaxError "assignment to a reserved word: #{obj.compile o} = #{value.compile o}"
-      return new Assign(obj, value, null, param: @param).compile o, LEVEL_TOP
+
     vvar    = value.compile o, LEVEL_LIST
+    if vvar is '[]'
+      throw new SyntaxError "illegal value: []"
+    vvar    = vvar[1 .. vvar.length - 2] if vvar and vvar.length > 2
+    
     assigns = []
     splat   = false
     if not IDENTIFIER.test(vvar) or @variable.assigns(vvar)
-      assigns.push "#{ ref = o.scope.freeVariable 'ref' } = #{vvar}"
+      ref = o.scope.freeVariable 'ref', true, true
+      assigns.push "dim #{ref}[] = #{vvar}"
       vvar = ref
     for obj, i in objects
       # A regular array pattern-match.
@@ -1223,8 +1211,8 @@ exports.Assign = class Assign extends Base
       if name? and name in RESERVED
         throw new SyntaxError "assignment to a reserved word: #{obj.compile o} = #{val.compile o}"
       assigns.push new Assign(obj, val, null, param: @param, subpattern: yes).compile o, LEVEL_LIST
-    assigns.push vvar unless top or @subpattern
-    code = assigns.join ', '
+    # assigns.push vvar unless top or @subpattern
+    code = assigns.join '; '
     if o.level < LEVEL_LIST then code else "(#{code})"
 
   # When compiling a conditional assignment, take care to ensure that the
