@@ -19,6 +19,15 @@ NO      = -> no
 THIS    = -> this
 NEGATE  = -> @negated = not @negated; this
 
+my_show_dimension = (dimension, o) ->
+  code = ''
+  if dimension
+    for d in dimension
+      n = ''
+      n = d.compileNode o if d
+      code = code + '[' + n + ']'
+   code
+
 #### Base
 
 # The **Base** is the abstract base class for all nodes in the syntax tree.
@@ -31,7 +40,7 @@ NEGATE  = -> @negated = not @negated; this
 # being requested by the surrounding function), information about the current
 # scope, and indentation level.
 exports.Base = class Base
-
+  
   # Common logic for determining whether to wrap this node in a closure before
   # compiling it, or to compile directly. We need to wrap if this node is a
   # *statement*, and it's not a *pureStatement*, and we're not at
@@ -1054,7 +1063,8 @@ exports.Assign = class Assign extends Base
       throw SyntaxError "variable name may not be \"#{name}\""
     @is_const = true if options and options['const'] is true
     @is_public = true if options and options['public'] is true
-    @is_array = true if options and options['array'] is true
+    @is_dim = true if options and options['dim'] is true
+    @dimension = options['dimension'] if options and options['dimension']
   children: ['variable', 'value']
 
   isStatement: (o) ->
@@ -1075,8 +1085,9 @@ exports.Assign = class Assign extends Base
       return @compilePatternMatch o if @variable.isArray() or @variable.isObject()
       return @compileSplice       o if @variable.isSplice()
       return @compileConditional  o if @context in ['||=', '&&=', '?=']
-    name = @variable.compile o, LEVEL_LIST
-    # console.log "------ assign_compile: variable:[#{@variable}], @context=[#{@context}]"
+    identify = name = @variable.compile o, LEVEL_LIST
+    name += my_show_dimension(@dimension, o) if @dimension
+    # console.log "------ assign_compile: @dimension=[#{@dimension}], name:[#{name}]"
     unless @context
       unless (varBase = @variable.unwrapAll()).isAssignable()
         throw SyntaxError "\"#{ @variable.compile o }\" cannot be assigned."
@@ -1091,8 +1102,11 @@ exports.Assign = class Assign extends Base
             o.scope.add name, 'uwsc_public'
           else if @is_const
             o.scope.add name, 'uwsc_const'
-          else if @is_array
-            o.scope.add name, 'uwsc_array'
+          else if @dimension
+            o.scope.add name, 'uwsc_dimension'
+          else if @is_dim
+            o.scope.add identify, 'uwsc_dimension'
+            o.scope.add name, 'uwsc_dimension'
           else
             if o.scope.is_const name
               throw new SyntaxError "re-assignment to const : #{name} = #{o.scope.get_const_val(name)} to #{@value.compile o}"
@@ -1104,8 +1118,7 @@ exports.Assign = class Assign extends Base
 
     value_str = undefined
     val = value_str = @value.compile o, LEVEL_LIST if @value
-    val = val[1 .. val.length - 2]  if @is_array and val and val.length > 1
-    name = name + '[]' if @is_array and name.lastIndexOf(']') isnt name.length - 1
+    val = val[1 .. val.length - 2]  if @dimemsion and val and val.length > 1
     
     return "#{name}: #{val}" if @context is 'object'
     # uwsc katoy    
@@ -1115,11 +1128,10 @@ exports.Assign = class Assign extends Base
       else
         val = name
 
-      val = 'DIM ' + val if @is_array 
+      val = 'DIM ' + val if @is_dim and (@is_const is undefined) and (@is_public is undefined)
       val = 'CONST ' + val if @is_const
-      val = 'PUBLIC ' + val if @is_public
-      o.scope.set_const_val(name, value_str) if @is_const and value_str
-      o.scope.set_public_val(name, value_str) if @is_public and value_str
+      val = 'PUBLIC ' + val if @is_public and !@is_const
+      o.scope.set_const_val(name, value_str) if @is_const
     else
       if g_has_uwsc_result
         val = "Function #{val}Fend"
@@ -1336,25 +1348,18 @@ exports.Code = class Code extends Base
 # these parameters can also attach themselves to the context of the function,
 # as well as be a splat, gathering up a group of parameters into an array.
 exports.Param = class Param extends Base
-  constructor: (@name, @value, @splat, @is_var, @dims) ->
+  constructor: (@name, @value, @splat, @is_var, @dimension) ->
     if (name = @name.unwrapAll().value) in STRICT_PROSCRIBED
       throw SyntaxError "parameter name \"#{name}\" is not allowed"
-
+    # console.log "-------- @dimension = [#{@dimension}]"
   children: ['name', 'value']
 
   compile: (o) ->
     code = @name.compile o, LEVEL_LIST
     code = 'var ' + code if @is_var
-    code = code + @show_dims(@dims, o) if @dims
+    code = code + my_show_dimension(@dimension, o)
     code
-    
-  show_dims: (dims, o) ->
-    code = ''
-    for d in dims
-      n = ''
-      n = d.compileNode o if d
-      code = code + '[' + n + ']'
-    code
+
   asReference: (o) ->
     return @reference if @reference
     node = @name

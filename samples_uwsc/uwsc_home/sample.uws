@@ -50,9 +50,9 @@ Endclass
 //Fend
 //----------------------------------------------------------------- 
 Class n3
+  PUBLIC G = 0
   Procedure main()
     dim a, b, c
-    PUBLIC G = 0
     a = 1
     b = 2
     c = 計算(a, b)
@@ -61,7 +61,6 @@ Class n3
   Fend
   // Function 戻り値あり（Result変数に戻り値を入れる)  
   Function 計算(ka, kb)
-    dim G
     Result = ka + kb
     G = 99
   Fend
@@ -94,7 +93,7 @@ Class n4
   // Procedure 戻り値なし 
   Procedure TETUZUKI(a, var b)
     a = 99
-    b = 99            // var指定により呼び出し元の値は変更される
+    b = 99
   Fend
 Endclass
 
@@ -294,7 +293,7 @@ Class n12
       While (True)
         If (wid <> GETID(GET_ACTIVE_WIN))
           wid = GETID(GET_ACTIVE_WIN)
-          CLKITEM(wid, "OK", CLK_BTN || CLK_MUSMOVE, False)
+          CLKITEM(wid, "OK", CLK_BTN or CLK_MUSMOVE, False)
         Endif
       Wend
       sleep(0.5)
@@ -457,13 +456,13 @@ Class n17
   Fend
   // PeekColorによる色は B,G,R 
   Function 赤色(c)
-    Result = c && $FF
+    Result = c and $FF
   Fend
   Function 緑色(c)
-    Result = (c && $FF00) / $100
+    Result = (c and $FF00) / $100
   Fend
   Function 青色(c)
-    Result = (c && $FF0000) / $10000
+    Result = (c and $FF0000) / $10000
   Fend
 Endclass
 
@@ -525,11 +524,11 @@ Endclass
 //----------------------------------------------------------------- 
 Class n20
   Procedure main()
-    dim agt, obj, キャラ
+    dim agt, obj, ss, キャラ
     キャラ = "Merlin"
     obj = CreateOLEObj("Agent.Control.1")
     obj.Connected = true
-    ss = GET_WIN_DIR + "\msagent\chars\" + キャラ +".acs"
+    ss = GET_WIN_DIR + "\msagent\chars\" + キャラ + ".acs"
     obj.Characters.Load(キャラ, ss)
     agt = obj.Characters(キャラ)
     agt.show
@@ -789,7 +788,7 @@ Class n27
       sleep(1)
       While (true)
         sleep(0.1)
-        If ((!IE.busy) && (IE.readyState = 4))
+        If ((!IE.busy) and (IE.readyState = 4))
           break
         Endif
       Wend
@@ -860,7 +859,7 @@ Class n29
   Procedure main()
     If (!CLKITEM(GETID("", "Shell_TrayWnd"), "音量", CLK_TOOLBAR))
       If (!CLKITEM(GETID("", "Shell_TrayWnd"), "Volume", CLK_TOOLBAR))
-        CLKITEM(GETID("", "Shell_TrayWnd"), "スピーカー", CLK_ACC || CLK_SHORT)
+        CLKITEM(GETID("", "Shell_TrayWnd"), "スピーカー", CLK_ACC or CLK_SHORT)
       Endif
     Endif
   Fend
@@ -1019,7 +1018,7 @@ Class n33
     ie.Visible = True
     ie.Navigate("http://www3.bigcosmic.com/board/s/board.cgi?id=umiumi")
     While (True)
-      If ((!ie.busy) && (ie.readyState = 4))
+      If ((!ie.busy) and (ie.readyState = 4))
         break
       Endif
       sleep(0.1)
@@ -1081,7 +1080,7 @@ Class n34
           MsgBox("Time Out:BusyWait")
           ExitExit
         Endif
-        If ((!ie.busy) && (ie.readyState = 4))
+        If ((!ie.busy) and (ie.readyState = 4))
           break
         Endif
       Wend
@@ -1135,7 +1134,7 @@ Class n36
       dim n
       While (True)
         Sleep(0.4)
-        For n = 0 To GETITEM(id, ITM_ACCCLK || ITM_ACCTXT) - 1
+        For n = 0 To GETITEM(id, ITM_ACCCLK or ITM_ACCTXT) - 1
           If (ALL_ITEM_LIST[n] = item)
             Exit
           Endif
@@ -1175,7 +1174,7 @@ Class n37
     表示完了待ち(id, "Google 検索")
     SENDSTR(id, "検索文字", 2, True, True)
     sleep(1)
-    CLKITEM(id, "Google 検索", CLK_ACC || CLK_LEFTCLK)
+    CLKITEM(id, "Google 検索", CLK_ACC or CLK_LEFTCLK)
     表示完了待ち(id, "すべて")
     CLKITEM(id, "日本語のページを検索", CLK_ACC)
     // 指定アイテム/文字が確認できるまで待つ 
@@ -1183,7 +1182,7 @@ Class n37
       dim n
       While (True)
         Sleep(0.4)
-        For n = 0 To GETITEM(id, ITM_ACCCLK || ITM_ACCTXT) - 1
+        For n = 0 To GETITEM(id, ITM_ACCCLK or ITM_ACCTXT) - 1
           If (ALL_ITEM_LIST[n] = item)
             Exit
           Endif
@@ -1222,15 +1221,15 @@ Class n38
     SCKEY(id, VK_RETURN)
     表示完了待ち(id, "Google 検索")
     SENDSTR(id, "検索文字", 3, True, True)
-    CLKITEM(id, "Google 検索", CLK_ACC || CLK_LEFTCLK)
+    CLKITEM(id, "Google 検索", CLK_ACC or CLK_LEFTCLK)
     表示完了待ち(id, "すべて")
-    CLKITEM(id, "日本語のページを検索", CLK_ACC || CLK_LEFTCLK)
+    CLKITEM(id, "日本語のページを検索", CLK_ACC or CLK_LEFTCLK)
     // 指定アイテム/文字が確認できるまで待つ 
     Procedure 表示完了待ち(id, item)
       dim n
       While (True)
         Sleep(0.4)
-        For n = 0 To GETITEM(id, ITM_ACCCLK || ITM_ACCTXT) - 1
+        For n = 0 To GETITEM(id, ITM_ACCCLK or ITM_ACCTXT) - 1
           If (ALL_ITEM_LIST[n] = item)
             Exit
           Endif
@@ -1255,10 +1254,10 @@ Endclass
 //----------------------------------------------------------------- 
 Class n39
   Procedure main()
-    dim id, デモ名
+    dim id, デモ名, パス
     デモ名 = "FileChooserDemo"
     パス = "C:\Program Files\Java\demo\jfc\"
-    DosCmd("java -jar <#DBL>"+パス+デモ名+"\"+デモ名+".jar<#DBL>", True)
+    DosCmd("java -jar <#DBL>" + パス + デモ名 + "\" + デモ名 + ".jar<#DBL>", True)
     id = GETID(デモ名, "SunAwtFrame", -1)
     If (ChkBtn(id, "Open", 1, True))
       PRINT "Open"
@@ -1428,7 +1427,7 @@ Class n44
     Endif
     MOUSEORG(id, 0)
     clockid = GETID("", "SideBar_SettingsWindow")
-    CLKITEM(clockid, "次へ", CLK_ACC or CLK_BACK, False)
+    CLKITEM(clockid, "次へ", CLK_ACC or CLK_BACK, False)    # フォーカス移す(JavaScriptの画像ボタン)
     KBD(VK_SPACE)
     CLKITEM(clockid, "秒針を表示する", CLK_ACC)
     CLKITEM(clockid, "OK", CLK_ACC)
@@ -1536,8 +1535,8 @@ Class n48
     itunes = CreateOLEObj("iTunes.Application")
     id = GETID("iTunes", "iTunes", -1)
     ClkItem(id, "ラジオ", CLK_ACC)
-    ClkItem(id, "80's Flashback", CLK_ACC || CLK_SHORT)
-    While (!ClkItem(id, "ABF ANALOG", CLK_ACC || CLK_SHORT))
+    ClkItem(id, "80's Flashback", CLK_ACC or CLK_SHORT)
+    While (!ClkItem(id, "ABF ANALOG", CLK_ACC or CLK_SHORT))
       Sleep(1)
     Wend
   Fend
@@ -1774,8 +1773,8 @@ Endclass
 //----------------------------------------------------------------- 
 Class n55
   Procedure main()
+    dim file, folder, i, n, paintID
     folder = "C:\Users\xxxx\Pictures"
-    dim file, i, n, paintID
     paintID = exec("mspaint.exe")
     n = GETDIR(folder, "*.jpg")
     For i = 0 To n - 1

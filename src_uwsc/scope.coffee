@@ -57,6 +57,14 @@ exports.Scope = class Scope
   check: (name) ->
     !!(@type(name) or @parent?.check(name))
 
+  is_dim: (name) ->
+    t = undefined
+    for v in @variables
+      t = v.type if v.name is name
+    return t is 'uwsc_dim' or t is 'uwsc_const' or t is 'uwsc_public' if t
+    return @parent.is_const(name) if @parent
+    undefined
+    
   is_const: (name) ->
     t = undefined
     for v in @variables
@@ -64,7 +72,15 @@ exports.Scope = class Scope
     return t is 'uwsc_const' if t
     return @parent.is_const(name) if @parent
     undefined
- 
+
+  is_public: (name) ->
+    t = undefined
+    for v in @variables
+      t = v.type if v.name is name
+    return t is 'uwsc_public' if t
+    return @parent.is_public(name) if @parent
+    undefined
+
   set_const_val: (name, val) ->
     for v in @variables when v.name is name and v.type = 'uwsc_const'
       v._val = val
@@ -78,27 +94,7 @@ exports.Scope = class Scope
     return @parent.get_const_val(name) if @parent
     undefined
 
-  is_public: (name) ->
-    t = undefined
-    for v in @variables
-      t = v.type if v.name is name
-    return t is 'uwsc_publuc' if t
-    return @parent.is_public(name) if @parent
-    undefined
- 
-  set_public_val: (name, val) ->
-    for v in @variables when v.name is name and v.type = 'uwsc_public'
-      v._val = val
-      return
-    return @parent.set_public_val(name) if @parent
- 
-  get_public_val: (name) ->
-    ans = undefined
-    for v in @variables when v.name is name and v.type = 'uwsc_public'
-      return v._val
-    return @parent.get_public_val(name) if @parent
-    undefined
-    
+
   # Generate a temporary variable name at the given index.
   temporary: (name, index) ->
     if name.length > 1
@@ -146,4 +142,10 @@ exports.Scope = class Scope
     ans = ''
     for v in @variables 
       ans = ans + v.name + ", "
+    ans
+    
+   my_concat_hash: (h0, h1) ->
+    ans = []
+    ans[k] = h0[k] for k in h0.keys
+    ans[k] = h1[k] for k in h1.keys
     ans

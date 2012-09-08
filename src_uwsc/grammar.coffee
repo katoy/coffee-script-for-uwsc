@@ -16,6 +16,7 @@
 
 # The only dependency is on the **Jison.Parser**.
 {Parser} = require 'jison'
+{extend} = require './helpers'
 
 # Jison DSL
 # ---------
@@ -76,7 +77,7 @@ grammar =
 
   # Pure statements which cannot be expressions.
   Statement: [
-    o 'Array_Def'
+    #o 'Array_Def'
     o 'Var_Def'
     o 'Return'
     o 'Comment'
@@ -134,14 +135,9 @@ grammar =
     o 'BOOL',                                   -> new Bool $1
   ]
 
-  Array_Attr: [
-    o 'DIM',                       -> {'array': true}
-    o 'PUBLIC_DIM',                -> {'array': true, 'public': true}
-  ]
-
-  ArrayDimList: [
+  ArrayDimension: [
     o 'ArrayDim',                  -> $1
-    o 'ArrayDimList ArrayDim',     -> $1.concat $2
+    o 'ArrayDimension ArrayDim',     -> $1.concat $2
   ]
 
   ArrayDim: [
@@ -149,26 +145,18 @@ grammar =
     o 'INDEX_START Value INDEX_END',      -> [new Value $2]
   ]
 
-  Array_Def: [
-    o 'Array_Attr Value',                    -> new Assign $2, undefined, undefined, $1
-    o 'Array_Attr Value = Array',            -> new Assign $2, $4, undefined, $1
-    o 'Array_Attr Value = Range',            -> new Assign $2, $4, undefined, $1
-  ]
-
-  Var_Attr_Public: [
-    o 'PUBLIC',                              -> {'public':true}
-  ]
-
   Var_Attr: [
-    o 'CONST',                               -> {'const':true}
-    o 'CONST PUBLIC',                        -> {'public':true, 'const':true}
-    o 'PUBLIC CONST',                        -> {'public':true, 'const':true}
+    o 'CONST',                               -> {'dim':true, 'public':true, 'const':true}
+    o 'PUBLIC',                              -> {'dim':true, 'public':true}
+    o 'DIM',                                 -> {'dim':true}
   ]
 
   Var_Def: [
-    o 'Var_Attr_Public Identifier',              -> new Assign $2, undefined, undefined, $1
-    o 'Var_Attr_Public Identifier = Expression', -> new Assign $2, $4, undefined, $1
-    o 'Var_Attr Identifier = Expression',        -> new Assign $2, $4, undefined, $1
+    o 'Var_Attr Identifier',                        -> new Assign $2, undefined, undefined, $1
+    o 'Var_Attr Identifier = Expression',           -> new Assign $2, $4, undefined, $1
+    o 'Var_Attr Identifier ArrayDimension',         -> new Assign $2, undefined, undefined, extend($1, {'dimension':$3})
+    o 'Var_Attr Identifier ArrayDimension = Array', -> new Assign $2, $5, undefined, extend($1, {'dimension':$3})
+    # o 'Var_Attr Identifier = Array',                -> new Assign $2, $4, undefined, extend($1, {'dimension':[]})
   ]
 
   # Assignment of a variable, property, or index to a value.
@@ -239,7 +227,7 @@ grammar =
   # that hoovers up the remaining arguments.
   Param: [
     o 'ParamVar',                               -> new Param $1
-    o 'ParamVar ArrayDimList',                  -> new Param $1, null, no, no, $2
+    o 'ParamVar ArrayDimension',                -> new Param $1, null, no, no, $2
     o 'ParamVar ...',                           -> new Param $1, null, on
     o 'ParamVar = Expression',                  -> new Param $1, $3
     o 'VAR ParamVar',                           -> new Param $2, null, no, yes
@@ -394,7 +382,7 @@ grammar =
   ArgList: [
     o 'Arg',                                              -> [$1]
     o 'ArgList , Arg',                                    -> $1.concat $3
-    o 'ArgList , ,',                                      -> $1.concat('').concat('')
+    #o 'ArgList , ,',                                      -> $1.concat('').concat('')
     #o 'ArgList , TERMINATOR',                             -> $1.concat ''
     #o 'ArgList OptComma TERMINATOR Arg',                  -> $1.concat $4
     #o 'INDENT ArgList OptComma OUTDENT',                  -> $2

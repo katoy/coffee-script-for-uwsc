@@ -1,7 +1,7 @@
 func_1 = (x, y, z) ->
   PRINT x + y + z
 
-func_1 = (x, var y, z = 1) ->
+func_2 = (x, var y, z = 1) ->
   PRINT x + y
 
 func_3 = (x[]) ->
