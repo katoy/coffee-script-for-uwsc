@@ -1122,7 +1122,7 @@ exports.Assign = class Assign extends Base
     if val and val.length > 1
       if @dimension
         val = val[1 .. val.length - 2]
-      else if (val.length > 1) and val[val.length - 1 ..] is ']'
+      else if (val.length > 1) and (val[0] is '[') and (val[val.length - 1] is ']')
         name += '[]'
         val = val[1 .. val.length - 2]
      
