@@ -1087,6 +1087,7 @@ exports.Assign = class Assign extends Base
       return @compileConditional  o if @context in ['||=', '&&=', '?=']
     identify = name = @variable.compile o, LEVEL_LIST
     name += my_show_dimension(@dimension, o) if @dimension
+
     # console.log "------ assign_compile: @dimension=[#{@dimension}], name:[#{name}]"
     unless @context
       unless (varBase = @variable.unwrapAll()).isAssignable()
@@ -1118,8 +1119,13 @@ exports.Assign = class Assign extends Base
 
     value_str = undefined
     val = value_str = @value.compile o, LEVEL_LIST if @value
-    val = val[1 .. val.length - 2]  if @dimemsion and val and val.length > 1
-    
+    if val and val.length > 1
+      if @dimension
+        val = val[1 .. val.length - 2]
+      else if (val.length > 1) and val[val.length - 1 ..] is ']'
+        name += '[]'
+        val = val[1 .. val.length - 2]
+     
     return "#{name}: #{val}" if @context is 'object'
     # uwsc katoy    
     if (@value is undefined) or "#{@value.bound}" is "undefined"

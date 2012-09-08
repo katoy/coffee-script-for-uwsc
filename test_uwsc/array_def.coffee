@@ -1,9 +1,12 @@
 dim ary_1[] = [1,2,3]
 dim ary_2[3] = [1,2,3]
 dim ary_3[3]
-dim ary_4 = [1..10]
-dim ary_5 = [1...10]
-dim ary_6 = [1, 2, 3, 4, 5]
+dim ary_4[] = [1..10]
+dim ary_5[] = [1...10]
+dim ary_6[9] = [1...10]
+
+dim ary_7 = [1, 2]
+dim ary_8 = [1..5]
 
 PRINT ary_2[i] for i in [0 ... Length(ary_3.length)]
 ReSize(ary_1, Length(ary_1) * 2 )

@@ -155,8 +155,7 @@ grammar =
     o 'Var_Attr Identifier',                        -> new Assign $2, undefined, undefined, $1
     o 'Var_Attr Identifier = Expression',           -> new Assign $2, $4, undefined, $1
     o 'Var_Attr Identifier ArrayDimension',         -> new Assign $2, undefined, undefined, extend($1, {'dimension':$3})
-    o 'Var_Attr Identifier ArrayDimension = Array', -> new Assign $2, $5, undefined, extend($1, {'dimension':$3})
-    # o 'Var_Attr Identifier = Array',                -> new Assign $2, $4, undefined, extend($1, {'dimension':[]})
+    o 'Var_Attr Identifier ArrayDimension = Expression', -> new Assign $2, $5, undefined, extend($1, {'dimension':$3})
   ]
 
   # Assignment of a variable, property, or index to a value.

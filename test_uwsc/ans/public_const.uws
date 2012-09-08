@@ -2,7 +2,7 @@
 Class cls
   CONST x = 1
   PUBLIC y = 1
-  DIM ary[3] = [1, 2, 3]
+  DIM ary[3] = 1, 2, 3
   PUBLIC G_ARY[3]
   Procedure fn()
     y = 10
