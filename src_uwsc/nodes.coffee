@@ -1629,7 +1629,7 @@ exports.Op = class Op extends Base
   compileChain: (o) ->
     [@first.second, shared] = @first.second.cache o
     fst = @first.compile o, LEVEL_OP
-    code = "#{fst} #{if @invert then '&&' else '||'} #{ shared.compile o } #{@operator} #{ @second.compile o, LEVEL_OP }"
+    code = "#{fst} #{if @invert then 'and' else 'or'} #{ shared.compile o } #{@operator} #{ @second.compile o, LEVEL_OP }"
     "(#{code})"
 
   compileExistence: (o) ->
