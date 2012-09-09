@@ -8,3 +8,5 @@ examples/beautiful_code/parse.coffee
 *.gem
 node_modules
 zzz/*
+/test_uwsc/1.txt
+/test_uwsc/2.txt

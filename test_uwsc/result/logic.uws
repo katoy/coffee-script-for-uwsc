@@ -5,6 +5,12 @@ Endif
 If (a or b)
   PRINT a or b
 Endif
+If (a or b)
+  PRINT a or b
+Endif
+If (a and b)
+  PRINT a and b
+Endif
 If (a | b)
   PRINT a | b
 Endif

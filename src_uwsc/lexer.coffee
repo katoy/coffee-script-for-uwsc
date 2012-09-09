@@ -342,7 +342,7 @@ exports.Lexer = class Lexer
     if value is '=' and prev
       if not prev[1].reserved and prev[1] in JS_FORBIDDEN
         @error "reserved word \"#{@value()}\" can't be assigned"
-      if prev[1] in ['or', 'and']  #ussc: katoy
+      if prev[1] in ['||', '&&', 'and', 'or']
         prev[0] = 'COMPOUND_ASSIGN'
         prev[1] += '='
         return value.length
@@ -366,6 +366,13 @@ exports.Lexer = class Lexer
     switch value
       when '(', '{', '[' then @ends.push INVERSES[value]
       when ')', '}', ']' then @pair value
+      when '&&'
+        @token tag, 'and'
+        return 2
+      when '||'
+        @token tag, 'or'
+        return 2        
+      when '||' then 
     @token tag, value
     value.length
 
@@ -566,6 +573,8 @@ COFFEE_KEYWORDS = ['undefined', 'then', 'unless', 'until', 'loop', 'of', 'by', '
 COFFEE_ALIAS_MAP =
   and  : 'and'   # uwsc: katoy
   or   : 'or'
+  '&&' : 'and'
+  '||' : 'or'
   is   : '=='
   isnt : '!='
   not  : '!'
@@ -674,7 +683,7 @@ UNARY   = ['!', '~', 'NEW', 'TYPEOF', 'DELETE', 'DO']
 # Logical tokens.
 # uwsc: katoy
 # LOGIC   = ['&&', '||', '&', '|', '^']
-LOGIC   = ['and', 'or', '&', '|', '^']
+LOGIC   = ['&&', '||', 'and', 'or', '&', '|', '^']
 
 # Bit-shifting tokens.
 SHIFT   = ['<<', '>>', '>>>']
