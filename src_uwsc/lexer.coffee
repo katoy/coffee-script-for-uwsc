@@ -150,6 +150,14 @@ exports.Lexer = class Lexer
     @token 'NUMBER', number
     lexedLength
 
+  uwsc_string: (doc) ->
+    if doc
+      doc = doc.replace(/\r\n/g, '<#CR>')
+      doc = doc.replace(/\r|\n/g, '<#CR>')
+      doc = doc.replace(/"/g, '<#DBL>')
+      doc = doc.replace(/\t/g, '<#TAB>')
+    doc
+
   # Matches strings, including multi-line strings. Ensures that quotation marks
   # are balanced within the string's contents, and within nested interpolations.
   stringToken: ->
@@ -177,6 +185,9 @@ exports.Lexer = class Lexer
     heredoc = match[0]
     quote = heredoc.charAt 0
     doc = @sanitizeHeredoc match[2], quote: quote, indent: null
+    
+    doc = @uwsc_string(doc)
+    
     if quote is '"' and 0 <= doc.indexOf '#{'
       @interpolateString doc, heredoc: yes
     else

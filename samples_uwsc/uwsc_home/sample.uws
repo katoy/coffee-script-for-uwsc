@@ -624,9 +624,38 @@ Endclass
 //----------------------------------------------------------------- 
 Class n22
   Procedure main()
-    // TODO 
-
-
+    DEF_DLL SetWindowTextA(HWND, string): user32.DLL
+    DEF_DLL EnableWindow(HWND, Bool): Bool: user32.DLL
+    DEF_DLL EnableMenuItem(HWND, UINT, UINT): DWORD: user32.DLL
+    DEF_DLL GetSubMenu(HWND, int): HWND: user32.DLL
+    DEF_DLL ModifyMenuA(HWND, Long, Long, Long, Long): Long: user32.DLL
+    dim MF_BYPOSITION, MF_GRAYED, SC_CLOSE, dc, hwnd, id, s, w
+    MF_GRAYED = $1
+    MF_BYPOSITION = $400
+    SC_CLOSE = $F060
+    // 終了は ALT + F4 で 
+    id = exec("notepad")
+    hwnd = GetSubMenu(GetCtlHnd(id, GET_MENU_HND), 0)
+    EnableMenuItem(hwnd, 8, MF_BYPOSITION + MF_GRAYED)
+    hwnd = GetCtlHnd(id, GET_SYSMENU_HND)
+    ModifyMenuA(hwnd, SC_CLOSE, MF_GRAYED, 0, 0)
+    ClkItem(id, "バージョン情報")
+    hwnd = GetCtlHnd(GETID("バージョン情報"), "OK")
+    SetWindowTextA(hwnd, "押せまい")
+    EnableWindow(hwnd, False)
+    // アクティブウィンドウの左上に時間を表示（デスクトップに文字を直書き）
+    DEF_DLL GetDC(hwnd): hwnd: USER32
+    DEF_DLL ReleaseDC(hwnd, hwnd): int: USER32
+    DEF_DLL TextOutW(hwnd, int, int, wstring, int): Bool: GDI32
+    While (!GETKEYSTATE(VK_ESC))
+      w = GETID(GET_ACTIVE_WIN)
+      GetTime()
+      s = "" + G_TIME_HH2 + ":" + G_TIME_NN2 + ":" + G_TIME_SS2
+      dc = GetDC(0)
+      TextOutW(dc, Status(w, ST_X) + 2, Status(w, ST_Y) + 2, s, Length(s))
+      ReleaseDC(0, DC)
+      Sleep(1)
+    Wend
   Fend
 Endclass
 
@@ -1334,9 +1363,20 @@ Endclass
 //----------------------------------------------------------------- 
 Class n41
   Procedure main()
-    // TODO 
-
-
+    dim answer, pls1, pls2, scpt, src
+    scpt = CreateOleObj("ScriptControl")
+    pls1 = 5
+    pls2 = 9
+    scpt.language = "VBScript"
+    src = "Function tasizan(a, b): tasizan = a + b: End Function"
+    scpt.AddCode(src)
+    answer = scpt.Run("tasizan", pls1, pls2)
+    PRINT "" + pls1 + " + " + pls2 + " = " + answer + " です（VBScript）"
+    scpt.language = "JScript"
+    src = "function tasizan(a, b){ return a + b; }"
+    scpt.AddCode(src)
+    answer = scpt.Run("tasizan", pls1, pls2)
+    PRINT "" + pls1 + " +  " + pls2 + "  = " + answer + " です（JScript）"
   Fend
 Endclass
 
@@ -1427,7 +1467,7 @@ Class n44
     Endif
     MOUSEORG(id, 0)
     clockid = GETID("", "SideBar_SettingsWindow")
-    CLKITEM(clockid, "次へ", CLK_ACC or CLK_BACK, False)    # フォーカス移す(JavaScriptの画像ボタン)
+    CLKITEM(clockid, "次へ", CLK_ACC or CLK_BACK, False)
     KBD(VK_SPACE)
     CLKITEM(clockid, "秒針を表示する", CLK_ACC)
     CLKITEM(clockid, "OK", CLK_ACC)
@@ -1480,7 +1520,9 @@ Class n46
     dim i, id
     id = GETID("Yahoo! JAPAN")
     For i = 1 To 99
-      if ! ClkItem(id, "地図", CLK_ACC or CLK_MUSMOVE, False, i) then break
+      If (!ClkItem(id, "地図", CLK_ACC or CLK_MUSMOVE, False, i))
+        break
+      Endif
       Fukidasi(i, G_MOUSE_X, G_MOUSE_Y + 20)
       Sleep(1)
     Next
@@ -1651,7 +1693,7 @@ Endclass
 //PowerShell(CShp + "[Samplecls]::PlusFuc2" + wks)
 //
 //TextBlock CShp
-//$source=@"
+//$source = @"
 //using System.Windows.Forms;
 //public class Samplecls{
 //    public static string PlusFuc(string a, int b)
@@ -1735,9 +1777,9 @@ Endclass
 //       if GETKEYSTATE(k) then flg = True
 //    next
 //    ifb (sv_x <> G_MOUSE_X) or (sv_y <> G_MOUSE_Y)  // マウス位置確認
-//        flg = True
 //        sv_x = G_MOUSE_X
 //        sv_y = G_MOUSE_Y
+//        flg = True
 //    endif
 //    ifb flg
 //        sv_tm = GETTIME()
@@ -1753,9 +1795,31 @@ Endclass
 //----------------------------------------------------------------- 
 Class n54
   Procedure main()
-    // TODO 
-
-
+    dim flg, k, sv_tm, sv_x, sv_y
+    flg = True
+    sv_tm = 0
+    dim _ref[] = -1, -1; sv_x = _ref[0]; sv_y = _ref[1]
+    While (True)
+      For k = VK_LBUTTON To VK_F12
+        If (GETKEYSTATE(k))
+          flg = True
+        Endif
+      Next
+      If ((sv_x <> G_MOUSE_X) or (sv_y <> G_MOUSE_Y))
+        dim _ref1[] = G_MOUSE_X, G_MOUSE_Y; sv_x = _ref1[0]; sv_y = _ref1[1]
+        flg = True
+      Endif
+      If (flg)
+        sv_tm = GETTIME()
+        flg = False
+      Else
+        If ((GETTIME() - sv_tm) > 60)
+          POFF(P_MONIPOWER2)
+          break
+        Endif
+      Endif
+      sleep(2)
+    Wend
   Fend
 Endclass
 
@@ -1801,9 +1865,17 @@ Endclass
 //----------------------------------------------------------------- 
 Class n56
   Procedure main()
-    // TODO 
-
-
+    dim id, x, y
+    id = GETID("xxxx")
+    DIM name[] = "ボタン", "リスト/コンボ", "タブ", "メニュ", "ツリービュ", "リストビュ", "エディト", "スタテック文字", "ステータスバー", "ツールバー", "ACCクリック可", "ACCテキスト"
+    DIM kid[] = ITM_BTN, ITM_LIST, ITM_TAB, ITM_MENU, ITM_TREEVEW, ITM_LSTVEW, ITM_EDIT, ITM_STATIC, ITM_STATUSBAR, ITM_TOOLBAR, ITM_ACCCLK, ITM_ACCTXT
+    For x = 0 To Length(name) - 1
+      PRINT name[x]
+      For y = 0 To GETITEM(id, kid[x]) - 1
+        PRINT "　" + ALL_ITEM_LIST[y]
+      Next
+      print
+    Next
   Fend
 Endclass
 
@@ -1944,9 +2016,33 @@ Endclass
 //----------------------------------------------------------------- 
 Class n59
   Procedure main()
-    // TODO 
-
-
+    dim fum, ret, x, y
+    Try
+      ex = XLOPEN(, XL_OOOC)   // OpenOffice.org もしくは LibreOffice の Calc の起動 
+    Except // (dummy) 
+      Try
+        ex = XLOPEN(, XL_NEW)  // Excel はあるか 
+      Except // (dummy) 
+        msgbox("OOo Calcも Excelもありません")
+      Endtry
+    Endtry
+    DIM anm[] = "A", "B", "C", "D", "E", "F", "G", "H", "I"
+    XLSETDATA(ex, anm, "A1")
+    DIM dd[9][9]
+    For y = 1 To 9
+      For x = 1 To 9
+        dd[y][x] = y * 10 + x
+      Next
+    Next
+    XLSETDATA(ex, dd, "A2")
+    For x = 0 To 8
+      fum = "=SUM(" + anm[x] + "1:" + anm[x] + "9)"
+      XLSETDATA(ex, fum, 12, x + 1)
+    Next
+    ret = XLGETDATA(ex, "A12:I12")
+    For x = 1 To 9
+      PRINT ret[1][x]
+    Next
   Fend
 Endclass
 

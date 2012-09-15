@@ -528,7 +528,37 @@ wend
 ----------------------------------------------------------------- ###
 class n22
   @main = ->
-    ### TODO ###
+    `DEF_DLL SetWindowTextA(HWND, string): user32.DLL`
+    `DEF_DLL EnableWindow(HWND, Bool): Bool: user32.DLL`
+    `DEF_DLL EnableMenuItem(HWND, UINT, UINT): DWORD: user32.DLL`
+    `DEF_DLL GetSubMenu(HWND, int): HWND: user32.DLL`
+    `DEF_DLL ModifyMenuA(HWND, Long, Long, Long, Long): Long: user32.DLL`
+    MF_GRAYED = $1
+    MF_BYPOSITION = $400
+    SC_CLOSE = $F060
+    ### 終了は ALT + F4 で ###
+    id = exec("notepad")
+    hwnd = GetSubMenu(GetCtlHnd(id, GET_MENU_HND), 0)    # メニュ- > ファイル
+    EnableMenuItem(hwnd, 8, MF_BYPOSITION+MF_GRAYED)     # 終了をグレー
+    hwnd = GetCtlHnd(id, GET_SYSMENU_HND)                # システムメニュ
+    ModifyMenuA(hwnd, SC_CLOSE, MF_GRAYED, 0, 0)         # クローズボタンをグレー
+    ClkItem(id, "バージョン情報")
+    hwnd = GetCtlHnd(GETID("バージョン情報"), "OK")
+    SetWindowTextA(hwnd, "押せまい")                     # OKボタン書換え
+    EnableWindow(hwnd, False)
+
+    ### アクティブウィンドウの左上に時間を表示（デスクトップに文字を直書き）###
+    `DEF_DLL GetDC(hwnd): hwnd: USER32`
+    `DEF_DLL ReleaseDC(hwnd, hwnd): int: USER32`
+    `DEF_DLL TextOutW(hwnd, int, int, wstring, int): Bool: GDI32`
+    while ! GETKEYSTATE(VK_ESC)          # ESCキーにて終了
+      w = GETID(GET_ACTIVE_WIN)
+      GetTime()
+      s = "#{G_TIME_HH2}:#{G_TIME_NN2}:#{G_TIME_SS2}"
+      dc = GetDC(0)                      # デスクトップのDC
+      TextOutW(dc, Status(w,ST_X) + 2, Status(w,ST_Y) + 2, s, Length(s))
+      ReleaseDC(0, DC)
+      Sleep 1
 
 ### -----------------------------------------------------------------
 // WindowsXP/Windows2000 のデフラグの実行＆シャットダウン　　#n24
@@ -1128,7 +1158,22 @@ print pls1 + " + " + pls2 + " = " + answer + "です（JScript）"
 ----------------------------------------------------------------- ###
 class n41
   @main = ->
-    ### TODO ###
+    scpt = CreateOleObj("ScriptControl")
+    pls1 = 5
+    pls2 = 9
+    # VBScriptを使う
+    scpt.language = "VBScript"
+    src = "Function tasizan(a, b): tasizan = a + b: End Function"
+    scpt.AddCode(src)                               # ソースを登録
+    answer = scpt.Run("tasizan", pls1, pls2)        # 実行
+    print "#{pls1} + #{pls2} = #{answer} です（VBScript）"
+
+    # JScriptを使う
+    scpt.language = "JScript"
+    src = "function tasizan(a, b){ return a + b; }"
+    scpt.AddCode(src)                               # ソースを登録
+    answer = scpt.Run("tasizan", pls1, pls2)        # 実行
+    print "#{pls1} +  #{pls2}  = #{answer} です（JScript）"
 
 ### -----------------------------------------------------------------
 // スレッドを使い吹出しを複数を出す　　#n42
@@ -1211,7 +1256,7 @@ class n44
       CLKITEM(id, "オプション", CLK_ACC)                    # Windows7
     MOUSEORG(id, 0)
     clockid = GETID("", "SideBar_SettingsWindow")
-    `CLKITEM(clockid, "次へ", CLK_ACC or CLK_BACK, False)    # フォーカス移す(JavaScriptの画像ボタン)`  # TODO
+    CLKITEM(clockid, "次へ", CLK_ACC or CLK_BACK, False)    # フォーカス移す(JavaScriptの画像ボタン)
     KBD(VK_SPACE)                                           # 時計を一つ変更
     CLKITEM(clockid, "秒針を表示する", CLK_ACC)
     CLKITEM(clockid, "OK", CLK_ACC)
@@ -1256,7 +1301,7 @@ class n46
   @main = ->
     id = GETID("Yahoo! JAPAN")
     for i in [1 .. 99]
-      `if ! ClkItem(id, "地図", CLK_ACC or CLK_MUSMOVE, False, i) then break`  # TODO        
+      if ! ClkItem(id, "地図", CLK_ACC or CLK_MUSMOVE, False, i) then break
       Fukidasi(i, G_MOUSE_X, G_MOUSE_Y+20)
       Sleep 1
 
@@ -1406,7 +1451,7 @@ print PowerShell(CShp + "[Samplecls]::PlusFuc" + wks)
 PowerShell(CShp + "[Samplecls]::PlusFuc2" + wks)
 
 TextBlock CShp
-$source=@"
+$source = @"
 using System.Windows.Forms;
 public class Samplecls{
     public static string PlusFuc(string a, int b)
@@ -1480,9 +1525,9 @@ while True
        if GETKEYSTATE(k) then flg = True
     next
     ifb (sv_x <> G_MOUSE_X) or (sv_y <> G_MOUSE_Y)  // マウス位置確認
-        flg = True
         sv_x = G_MOUSE_X
         sv_y = G_MOUSE_Y
+        flg = True
     endif
     ifb flg
         sv_tm = GETTIME()
@@ -1497,8 +1542,26 @@ while True
 wend
 ----------------------------------------------------------------- ###
 class n54
-  @main = ->
-    ### TODO ###
+  @main = -> 
+    flg = True
+    sv_tm = 0               # 時間保存
+    [sv_x, sv_y] = [-1, -1]   # マウス位置保存
+    while True
+        for k in [VK_LBUTTON .. VK_F12]      # キーの確認            
+          flg = True if GETKEYSTATE(k)
+        if (sv_x != G_MOUSE_X) or (sv_y != G_MOUSE_Y)  # マウス位置確認
+            [sv_x, sv_y] = [G_MOUSE_X, G_MOUSE_Y]
+            flg = True
+
+        if flg
+            sv_tm = GETTIME()
+            flg = False
+        else
+            if (GETTIME() - sv_tm) > 60   # 60秒以上変化なし
+                POFF P_MONIPOWER2
+                break
+
+        sleep 2
 
 ### -----------------------------------------------------------------
 // 指定フォルダにあるjpgファイルをペイントにドロップする　　#n55
@@ -1538,7 +1601,14 @@ next
 ----------------------------------------------------------------- ###
 class n56
   @main = ->
-    ### TODO ###
+    id = GETID("xxxx")      # ウィンドウ指定
+    dim name[] = ["ボタン", "リスト/コンボ", "タブ", "メニュ", "ツリービュ", "リストビュ", "エディト", "スタテック文字", "ステータスバー", "ツールバー", "ACCクリック可", "ACCテキスト"]
+    dim kid[] =  [ITM_BTN, ITM_LIST, ITM_TAB, ITM_MENU, ITM_TREEVEW, ITM_LSTVEW, ITM_EDIT, ITM_STATIC, ITM_STATUSBAR, ITM_TOOLBAR, ITM_ACCCLK, ITM_ACCTXT]
+    for x in [0 ... Length(name)]
+      print name[x]
+      for y in [0 ... GETITEM(id, kid[x])]  # GETITEM関数により種別指定で文字取得
+        print "　#{ALL_ITEM_LIST[y]}"
+      print
 
 ### -----------------------------------------------------------------
 // OCRの利用（Office付属）　　#n57
@@ -1670,7 +1740,28 @@ next
 ----------------------------------------------------------------- ###
 class n59
   @main = ->
-    ### TODO ###
+    # Pro版のみ
+    try
+      `ex = XLOPEN(, XL_OOOC)   // OpenOffice.org もしくは LibreOffice の Calc の起動 ` # TODO:
+    catch dummy
+      try
+        `ex = XLOPEN(, XL_NEW)  // Excel はあるか `  # TODO:
+      catch dummy
+        msgbox("OOo Calcも Excelもありません")
+
+    dim anm[] = ["A", "B",  "C",  "D", "E",  "F",  "G",  "H",  "I"]
+    XLSETDATA(ex, anm, "A1")
+    dim dd[9][9]   # 9 x 9の値作成
+    
+    dd[y][x] = y * 10 + x for x in [1 .. 9] for y in [1 .. 9]
+
+    XLSETDATA(ex, dd, "A2")   # 一つずつ設定するよりも配列に入れて一度で渡す、その方が早いので
+    for x in [0 .. 8]
+      fum = "=SUM(#{anm[x]}1:#{anm[x]}9)" # 式 =SUM("A1:A9")
+      XLSETDATA(ex, fum, 12, x + 1)
+
+    ret = XLGETDATA(ex, "A12:I12")  # 値の取得(一列指定でも二次元で返される)
+    print ret[1][x] for x in [1 .. 9]
 
 ### -----------------------------------------------------------------
 // IE上のFlashからデータ取得(バーチャルFXからレート取得)　　#n60

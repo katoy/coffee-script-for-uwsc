@@ -1842,7 +1842,8 @@ exports.For = class For extends While
     scope.find(index) if index
     #rvar      = scope.freeVariable 'results' if @returns
     #ivar      = (@object and index) or scope.freeVariable 'i'
-    #kvar      = (@range and name) or index or ivar
+    ivar      = @range or scope.freeVariable 'i'
+    kvar      = (@range and name) or index or ivar
     #kvarAssign = if kvar isnt ivar then "#{kvar} = " else ""
     # the `_by` variable is created twice in `Range`s if we don't prevent it from being declared here
     stepvar   = scope.freeVariable "step" if @step and not @range
@@ -1865,14 +1866,17 @@ exports.For = class For extends While
       if name and not @pattern
         namePart   = "#{name} = #{svar}[#{kvar}]"
       unless @object
-        lvar       = scope.freeVariable 'len'
-        forVarPart = "#{kvarAssign}#{ivar} = 0, #{lvar} = #{svar}.length"
-        forVarPart += ", #{stepvar} = #{@step.compile o, LEVEL_OP}" if @step
-        stepPart   = "#{kvarAssign}#{if @step then "#{ivar} += #{stepvar}" else (if kvar isnt ivar then "++#{ivar}" else "#{ivar}++")}"
-        forPart    = "#{forVarPart}; #{ivar} < #{lvar}; #{stepPart}"
+        # lvar       = scope.freeVariable 'p'
+        # forVarPart = "#{kvarAssign}#{ivar} = 0, #{lvar} = #{svar}.length"
+        # forVarPart += ", #{stepvar} = #{@step.compile o, LEVEL_OP}" if @step
+        # stepPart   = "#{kvarAssign}#{if @step then "#{ivar} += #{stepvar}" else (if kvar isnt ivar then "++#{ivar}" else "#{ivar}++")}"
+        # forPart    = "#{forVarPart}; #{ivar} < #{lvar}; #{stepPart}"
+        stepPart = if @step then "Step #{@step.compile o, LEVEL_OP}" else ""
+        forPart = "#{kvar} = 0 To Length(#{svar}) #{stepPart}"
     if @returns
-      resultPart   = "#{@tab}#{rvar} = []\n"
+      # resultPart   = "#{@tab}#{rvar} = []\n"
       ## uwsc katoy
+      resultPart = ""
       returnResult = "\n#{@tab}#{rvar}"
       body.makeReturn rvar
     if @guard
