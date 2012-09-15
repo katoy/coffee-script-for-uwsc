@@ -362,7 +362,8 @@ class exports.Undefined extends Base
   isAssignable: NO
   isComplex: NO
   compileNode: (o) ->
-    if o.level >= LEVEL_ACCESS then '(void 0)' else 'void 0'
+    # if o.level >= LEVEL_ACCESS then '(void 0)' else 'void 0'
+    "undefined"
 
 class exports.Null extends Base
   isAssignable: NO
@@ -475,7 +476,8 @@ exports.Value = class Value extends Base
     code  = "#{code}." if (@base instanceof Parens or props.length) and SIMPLENUM.test code
     code += prop.compile o for prop in props
     #console.trace("compileNode")
-    #console.log "---------- code=[#{code}]"
+    # console.log "---------- code=[#{code}]"
+    code = ' ' if code is '_'
     code
 
   # Unfold a soak into an `If`: `a?.b` -> `a.b if a?`

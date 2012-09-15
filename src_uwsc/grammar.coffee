@@ -336,7 +336,7 @@ grammar =
   # The list of arguments to a function call.
   Arguments: [
     o 'CALL_START CALL_END',                    -> []
-    o 'CALL_START ArgList CALL_END',   -> $2
+    o 'CALL_START ArgList CALL_END',            -> $2
   ]
 
   # A reference to the *this* current object.
@@ -378,14 +378,12 @@ grammar =
   # The **ArgList** is both the list of objects passed into a function call,
   # as well as the contents of an array literal
   # (i.e. comma-separated expressions). Newlines work as well.
-  ArgList: [
+  ArgList: [    
     o 'Arg',                                              -> [$1]
     o 'ArgList , Arg',                                    -> $1.concat $3
-    #o 'ArgList , ,',                                      -> $1.concat('').concat('')
-    #o 'ArgList , TERMINATOR',                             -> $1.concat ''
-    #o 'ArgList OptComma TERMINATOR Arg',                  -> $1.concat $4
-    #o 'INDENT ArgList OptComma OUTDENT',                  -> $2
-    #o 'ArgList OptComma INDENT ArgList OptComma OUTDENT', -> $1.concat $4
+    o 'ArgList OptComma TERMINATOR Arg',                  -> $1.concat $4
+    o 'INDENT ArgList OptComma OUTDENT',                  -> $2
+    o 'ArgList OptComma INDENT ArgList OptComma OUTDENT', -> $1.concat $4
   ]
 
   # Valid arguments are Blocks or Splats.

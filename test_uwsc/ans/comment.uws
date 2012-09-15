@@ -30,7 +30,7 @@ Class test005
   nonce = {}
   Procedure fn3()
     If (true)
-      void 0
+      undefined
     Endif
     nonce
   Fend
@@ -51,10 +51,10 @@ Fend
 Function test007()
   dim nonce
   nonce = true
-  result = false ? void 0 : nonce
+  result = false ? undefined : nonce
 Fend
 Function test008()
-  result = false ? void 0 : nonce
+  result = false ? undefined : nonce
 Fend
 //  This is a here-comment.
 //  Kind of like a heredoc.
