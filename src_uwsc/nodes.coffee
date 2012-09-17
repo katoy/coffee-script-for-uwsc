@@ -622,6 +622,8 @@ exports.Call = class Call extends Base
       fnameUpper = fname.toUpperCase()
       if fnameUpper is 'PRINT'
         "PRINT #{args}"
+      else if fnameUpper is 'OPTION'
+        "OPTION #{args}"
       else if fnameUpper is 'CALL'
         "CALL #{args}"
       else if fnameUpper is 'HASHTBL'

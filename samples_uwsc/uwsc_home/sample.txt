@@ -197,7 +197,7 @@ class n10
     while True
       if GetKeyState(VK_SHIFT)
         id = GETID(GET_FROMPOINT_OBJ)           # マウスカーソル下のオブジェクト
-        `SAVEIMG("Image"+num, id, , , , , , 50)  # "Image?.jpg" (圧縮率50%)にて保存`   # TODO
+        SAVEIMG("Image"+num, id, _, _, _, _, _, 50)  # "Image?.jpg" (圧縮率50%)にて保存
         num += 1
       Sleep 0.2
 
@@ -785,7 +785,7 @@ class n30
       Fukidasi(wks, x+10, y+10, 3)
 
       SendStr(0, wks)  if GetKeyState(VK_SHIFT)      # クリップボードへ
-      Sleep(0.5)
+      Sleep 0.5
 
 ### -----------------------------------------------------------------
 // マウスカーソル下の文章を読み上げる　　#n31
@@ -807,7 +807,7 @@ class n31
       if sv_s != wks
         sv_s = wks
         Speak(wks, True, True)    # 読み上げ
-      Sleep(0.5)
+      Sleep 0.5
 
 ### -----------------------------------------------------------------
 // 音声認識によるアプリの操作　　#n32
@@ -1133,8 +1133,8 @@ class n40
       continue if p is 0
 
       filnm = Copy(wks, 1, p+3)
-      wk = bobj.RcvMail(サーバ, ユーザID, パスワード, "DELE "+(i+1), GET_CUR_DIR)   # 指定メール削除
-      exec("uwsc.exe " + filnm)        # xxxx.uwsの実行
+      wk = bobj.RcvMail(サーバ, ユーザID, パスワード, "DELE #{i+1}", GET_CUR_DIR)   # 指定メール削除
+      exec "uwsc.exe #{filnm}"        # xxxx.uwsの実行
       break
 
 ### -----------------------------------------------------------------
@@ -1278,11 +1278,9 @@ Fend
 ----------------------------------------------------------------- ###
 class n45
   @main = ->
-    # SETHOTKEY(k, ,"fuckey") for k in [VK_A .. VK_Y]    # AからYまでキー登録
-    for k in [VK_A .. VK_Y]
-      `SETHOTKEY(k, ,"fuckey")`              # TODO
+    SETHOTKEY(k, _, "fuckey") for k in [VK_A .. VK_Y]    # AからYまでキー登録
     Sleep 100
-    SETHOTKEY(k)  for k in [VK_A .. VK_Y]    # 解除
+    SETHOTKEY(k) for k in [VK_A .. VK_Y]    # 解除
 
   # 一文字ずらす
   @fuckey = -> KBD(HOTKEY_VK+1)
@@ -1321,11 +1319,11 @@ CLKITEM(id, ALL_ITEM_LIST[x], CLK_ACC)
 class n47
   @main = ->
     if KINDOFOS(True)
-      id = GETID("","WorkerW")                   # Windows7 64bit
-    else 
-      id = GETID("Program Manager","Progman")
+      id = GETID("", "WorkerW")                 # Windows7 64bit
+    else
+      id = GETID("Program Manager", "Progman")
 
-    for i in [0 .. GETITEM(id, ITM_ACCCLK) - 1]
+    for i in [0 ... GETITEM(id, ITM_ACCCLK)]
       if Pos("ボタンの分割", ALL_ITEM_LIST[i]) is 1 then ALL_ITEM_LIST[i] = ""   # 要らない項目
 
     x = POPUPMENU(ALL_ITEM_LIST)
@@ -1377,11 +1375,11 @@ class n49
     imagenm = Slice(ALL_ITEM_LIST)            # 配列コピー
     GETITEM(id, ITM_LSTVEW, 1, 4)             # 消費メモリ
     memory = Slice(ALL_ITEM_LIST)
-    for n in [0 .. Length(imagenm) - 1]
+    for n in [0 ... Length(imagenm)]
       memory[n] = Val(Token(" ", memory[n]))  # 数値部のみ切取り
 
     QSort(memory, 0, imagenm)    
-    print "#{imagenm[n]}<#TAB>#{memory[n]}"  for n in [0 .. Length(imagenm) - 1]
+    print "#{imagenm[n]}<#TAB>#{memory[n]}"  for n in [0 ... Length(imagenm)]
 
 ### -----------------------------------------------------------------
 // マインスイーパー自動処理　　#n50
@@ -1742,10 +1740,10 @@ class n59
   @main = ->
     # Pro版のみ
     try
-      `ex = XLOPEN(, XL_OOOC)   // OpenOffice.org もしくは LibreOffice の Calc の起動 ` # TODO:
+      ex = XLOPEN(_, XL_OOOC)   # OpenOffice.org もしくは LibreOffice の Calc の起動
     catch dummy
       try
-        `ex = XLOPEN(, XL_NEW)  // Excel はあるか `  # TODO:
+        ex = XLOPEN(_, XL_NEW)  # Excel はあるか
       catch dummy
         msgbox("OOo Calcも Excelもありません")
 

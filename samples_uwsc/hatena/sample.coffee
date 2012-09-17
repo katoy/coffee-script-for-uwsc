@@ -5,7 +5,7 @@
 
 ### ========== 1. 基礎 ============= ###
 ###  Option Explicit ###
-`Option Explicit`
+Option Explicit
 
 ###----------------------------------
   Print "Hello world."          // Print 文はデバッグ用です。結果はロギングウィンドウに表示されます。
@@ -24,15 +24,15 @@ MsgBox "Hello world."
   dim students[10]
   HashTbl month_num
 ----------------------------------###
-
+dim students[10]
 HashTbl month_num
 
 ###----------------------------------
   Option LogPath="C:\TEMP\UWSC.log"
   Option LogFile=3 // 1:ログ出力しない, 2:日付（時分秒）付けない, 3:日付（時分秒）を付ける
 ----------------------------------###
-`Option LogPath="C:\TEMP\UWSC.log"`
-`Option LogFile=3 // 1:ログ出力しない, 2:日付（時分秒）付けない, 3:日付（時分秒）を付ける`
+Option LogPath="C:\TEMP\UWSC.log"
+Option LogFile=3 # 1:ログ出力しない, 2:日付（時分秒）付けない, 3:日付（時分秒）を付ける
 
 ###----------------------------------
   Dim num = 1
