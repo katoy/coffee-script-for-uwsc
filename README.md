@@ -55,6 +55,9 @@ foo.coffee の変換結果が ./outdir/foo.uws に出力されます。
   
 Cookbook
 ---------
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/katoy/coffee-script-for-uwsc.svg)](https://greenkeeper.io/)
+
 　uwscscript の例を示していきます。 
 
 * uwsc の埋め込み  
